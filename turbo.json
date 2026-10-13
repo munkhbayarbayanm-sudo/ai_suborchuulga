@@ -1,0 +1,10 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "globalEnv": ["NEXT_PUBLIC_API_URL"],
+  "globalPassThroughEnv": ["DATABASE_URL", "REDIS_URL", "STORAGE_ROOT", "API_HOST", "API_PORT", "WEB_ORIGIN", "MAX_UPLOAD_BYTES", "FFPROBE_PATH", "FFMPEG_PATH", "MEDIA_PROCESS_TIMEOUT_MS", "WORKER_CONCURRENCY"],
+  "tasks": {
+    "build": { "dependsOn": ["^build"], "outputs": ["dist/**", ".next/**", "!.next/cache/**"] },
+    "typecheck": { "dependsOn": ["^typecheck"] },
+    "dev": { "cache": false, "persistent": true }
+  }
+}

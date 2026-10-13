@@ -1,0 +1,104 @@
+generator client {
+  provider = "prisma-client-js"
+}
+datasource db {
+  provider = "postgresql"
+  url = env("DATABASE_URL")
+}
+enum AssetStatus {
+  IMPORTED
+  INSPECTING
+  READY
+  FAILED
+}
+enum StreamType {
+  VIDEO
+  AUDIO
+  SUBTITLE
+  OTHER
+}
+enum JobType {
+  INSPECT_MEDIA
+}
+enum JobStatus {
+  QUEUED
+  PROCESSING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+model Series {
+  id String @id @default(uuid()) @db.Uuid
+  title String @db.VarChar(200)
+  description String?
+  sourceLanguage String? @db.VarChar(35)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  episodes Episode[]
+}
+model Episode {
+  id String @id @default(uuid()) @db.Uuid
+  seriesId String @db.Uuid
+  series Series @relation(fields: [seriesId], references: [id], onDelete: Cascade)
+  title String @db.VarChar(200)
+  episodeNumber Int?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  mediaAssets MediaAsset[]
+  jobs ProcessingJob[]
+  @@index([seriesId])
+}
+model MediaAsset {
+  id String @id @default(uuid()) @db.Uuid
+  episodeId String @db.Uuid
+  episode Episode @relation(fields: [episodeId], references: [id], onDelete: Cascade)
+  originalFilename String @db.VarChar(255)
+  storageKey String @unique
+  mimeType String @db.VarChar(100)
+  sizeBytes BigInt
+  durationMs Int?
+  containerFormat String?
+  width Int?
+  height Int?
+  status AssetStatus @default(IMPORTED)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  streams MediaStream[]
+  jobs ProcessingJob[]
+  @@index([episodeId])
+}
+model MediaStream {
+  id String @id @default(uuid()) @db.Uuid
+  mediaAssetId String @db.Uuid
+  mediaAsset MediaAsset @relation(fields: [mediaAssetId], references: [id], onDelete: Cascade)
+  streamIndex Int
+  type StreamType
+  codec String?
+  language String?
+  title String?
+  width Int?
+  height Int?
+  frameRate Float?
+  channels Int?
+  sampleRate Int?
+  @@unique([mediaAssetId, streamIndex])
+}
+model ProcessingJob {
+  id String @id @default(uuid()) @db.Uuid
+  jobType JobType @default(INSPECT_MEDIA)
+  status JobStatus @default(QUEUED)
+  progress Int @default(0)
+  episodeId String? @db.Uuid
+  episode Episode? @relation(fields: [episodeId], references: [id], onDelete: Cascade)
+  mediaAssetId String? @db.Uuid
+  mediaAsset MediaAsset? @relation(fields: [mediaAssetId], references: [id], onDelete: Cascade)
+  errorCode String?
+  errorMessage String?
+  createdAt DateTime @default(now())
+  startedAt DateTime?
+  completedAt DateTime?
+  updatedAt DateTime @updatedAt
+  @@index([status, createdAt])
+  @@index([episodeId])
+  @@index([mediaAssetId])
+}
