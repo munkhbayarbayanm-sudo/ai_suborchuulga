@@ -7,6 +7,7 @@ import { processInspection, failInspection } from './inspection';
 import { settleWithin } from './shutdown';
 import { HttpProviders, type ProviderSet } from '@mongolsub/extraction';
 import { processSourceExtraction, failSourceExtraction } from './extraction';
+import {processFusion,failFusion} from './fusion';
 export async function createInspectionWorker(config: Config, providers:ProviderSet = new HttpProviders(config)) {
   const db = new PrismaClient({ datasourceUrl: config.DATABASE_URL });
   await db.$connect();
@@ -17,12 +18,13 @@ export async function createInspectionWorker(config: Config, providers:ProviderS
     const { jobId } = inspectionPayload.parse(job.data);
     const row=await db.processingJob.findUniqueOrThrow({where:{id:jobId}});
     if(row.jobType==='INSPECT_MEDIA')await processInspection(jobId, db, storage, config);
+    else if(row.jobType==='FUSE_TRANSCRIPT')await processFusion(jobId,db);
     else await processSourceExtraction(jobId,db,storage,config,providers);
   }, { connection: redis, concurrency: config.WORKER_CONCURRENCY, maxStalledCount: 1 });
   worker.on('error', () => console.error(JSON.stringify({ event: 'worker_transport_error' })));
   worker.on('failed', (job, _error) => {
     const parsed = inspectionPayload.safeParse(job?.data);
-    if (parsed.success) void (async()=>{const row=await db.processingJob.findUnique({where:{id:parsed.data.jobId}});if(row?.jobType==='INSPECT_MEDIA')await failInspection(row.id,db,'WORKER_FAILED','Inspection stopped unexpectedly. Check worker readiness.');else if(row)await failSourceExtraction(row.id,db,'PROCESS_FAILED','Source extraction stopped unexpectedly. Check worker readiness.');})().catch(() => console.error(JSON.stringify({ event: 'failure_persistence_failed', jobId: parsed.data.jobId })));
+    if (parsed.success) void (async()=>{const row=await db.processingJob.findUnique({where:{id:parsed.data.jobId}});if(row?.jobType==='INSPECT_MEDIA')await failInspection(row.id,db,'WORKER_FAILED','Inspection stopped unexpectedly. Check worker readiness.');else if(row?.jobType==='FUSE_TRANSCRIPT')await failFusion(row.id,db,'FUSION_FAILED','Transcript fusion stopped unexpectedly. Check worker readiness.');else if(row)await failSourceExtraction(row.id,db,'PROCESS_FAILED','Source extraction stopped unexpectedly. Check worker readiness.');})().catch(() => console.error(JSON.stringify({ event: 'failure_persistence_failed', jobId: parsed.data.jobId })));
   });
   await worker.waitUntilReady();
   let closing = false;

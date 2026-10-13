@@ -1,8 +1,9 @@
 # MongolSub Studio
 
-Phase 02: a local studio for organizing Series/Episodes, importing original video,
-and extracting independent embedded subtitle, WhisperX ASR and PaddleOCR evidence.
-Translation, cross-source fusion and editing remain deferred.
+Phase 03: a local studio for organizing Series/Episodes, importing original video,
+extracting independent embedded subtitle/WhisperX/PaddleOCR evidence, and deriving
+inspectable canonical transcripts with confidence reasons and manual review.
+Source evidence remains immutable. Translation and professional editing remain deferred.
 
 ## Prerequisites
 

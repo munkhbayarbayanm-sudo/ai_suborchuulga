@@ -25,7 +25,8 @@ export async function dispatchPending(db: PrismaClient, queue: Queue<{jobId:stri
       await db.$transaction(async tx => {
         const result = await tx.processingJob.updateMany({ where: { id: job.id, status: { in: [JobStatus.QUEUED, JobStatus.PROCESSING] } }, data: { status: JobStatus.FAILED, completedAt: new Date(), errorCode: 'QUEUE_DELIVERY_FAILED', errorMessage: 'Inspection stopped before its result could be saved. Check database and worker readiness, then re-import.' } });
         if (result.count && job.mediaAssetId && job.jobType===JobType.INSPECT_MEDIA) await tx.mediaAsset.update({ where: { id: job.mediaAssetId }, data: { status: AssetStatus.FAILED } });
-        if(result.count && job.jobType!==JobType.INSPECT_MEDIA)await tx.sourceExtractionRun.updateMany({where:{processingJobId:job.id,status:{in:[JobStatus.QUEUED,JobStatus.PROCESSING]}},data:{status:JobStatus.FAILED,stage:'Failed',completedAt:new Date()}});
+        if(result.count && job.jobType===JobType.FUSE_TRANSCRIPT)await tx.fusionRun.updateMany({where:{processingJobId:job.id,status:{in:[JobStatus.QUEUED,JobStatus.PROCESSING]}},data:{status:JobStatus.FAILED,stage:'Failed',completedAt:new Date()}});
+        else if(result.count && job.jobType!==JobType.INSPECT_MEDIA)await tx.sourceExtractionRun.updateMany({where:{processingJobId:job.id,status:{in:[JobStatus.QUEUED,JobStatus.PROCESSING]}},data:{status:JobStatus.FAILED,stage:'Failed',completedAt:new Date()}});
       });
     } else if (job.status === JobStatus.QUEUED) await queue.add(job.jobType, { jobId: job.id }, { jobId: job.id });
   }

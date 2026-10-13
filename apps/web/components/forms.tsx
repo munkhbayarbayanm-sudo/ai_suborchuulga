@@ -44,11 +44,12 @@ export function EpisodeForm({ seriesId, episode, onSaved, onCancel }: { seriesId
   const id = useId();
   const [title, setTitle] = useState(episode?.title || '');
   const [number, setNumber] = useState(episode?.episodeNumber?.toString() || '');
+  const [language, setLanguage] = useState(episode?.sourceLanguage || '');
   const [errors, setErrors] = useState<FieldErrors>({});
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   function validate(field?: string) {
-    const result = createEpisodeSchema.safeParse({ title, episodeNumber: number.trim() ? Number(number) : null });
+    const result = createEpisodeSchema.safeParse({ title, episodeNumber: number.trim() ? Number(number) : null, sourceLanguage: language || null });
     const next: FieldErrors = {};
     if (!result.success) for (const issue of result.error.issues) next[String(issue.path[0])] = issue.message;
     setErrors(previous => field ? { ...previous, [field]: next[field] || '' } : next);
@@ -66,5 +67,6 @@ export function EpisodeForm({ seriesId, episode, onSaved, onCancel }: { seriesId
   return <section className="form-panel"><h2>{episode ? 'Episode settings' : 'Create episode'}</h2><form onSubmit={submit} noValidate aria-busy={busy}><div className="form-grid">
     <div className="field"><label htmlFor={`${id}-title`}>Episode title <span className="muted">(required)</span></label><input autoFocus id={`${id}-title`} value={title} maxLength={200} required aria-required="true" aria-invalid={!!errors.title} aria-describedby={`${id}-title-help`} onChange={event => { setTitle(event.target.value); setErrors(value => ({ ...value, title: '' })); }} onBlur={() => validate('title')} /><p id={`${id}-title-help`} className={errors.title ? 'field-help error-text' : 'field-help'}>{errors.title || 'Use a title that identifies the episode.'}</p></div>
     <div className="field"><label htmlFor={`${id}-number`}>Episode number</label><input id={`${id}-number`} type="number" min={1} max={100000} step={1} value={number} aria-invalid={!!errors.episodeNumber} aria-describedby={`${id}-number-help`} onChange={event => { setNumber(event.target.value); setErrors(value => ({ ...value, episodeNumber: '' })); }} onBlur={() => validate('episodeNumber')} /><p id={`${id}-number-help`} className={errors.episodeNumber ? 'field-help error-text' : 'field-help'}>{errors.episodeNumber || 'Optional positive whole number.'}</p></div>
+    <div className="field"><label htmlFor={`${id}-language`}>Declared source language</label><select id={`${id}-language`} value={language} disabled={busy} onChange={event => setLanguage(event.target.value)}><option value="">Auto / inherit series declaration</option><option value="en">English</option><option value="zh">Chinese</option><option value="zh-CN">Simplified Chinese</option><option value="zh-TW">Traditional Chinese</option>{language && !['en', 'zh', 'zh-CN', 'zh-TW'].includes(language) && <option value={language}>{language}</option>}</select><p className={errors.sourceLanguage ? 'field-help error-text' : 'field-help'}>{errors.sourceLanguage || 'Optional tie context for Auto reconciliation. It does not translate source text.'}</p></div>
     </div>{error && <ErrorNotice message={error} />}<div className="form-actions"><button type="submit" className="button primary" disabled={busy}>{busy ? 'Saving…' : episode ? 'Save episode' : 'Create episode'}</button><button type="button" className="button secondary" disabled={busy} onClick={onCancel}>Cancel</button></div></form></section>;
 }

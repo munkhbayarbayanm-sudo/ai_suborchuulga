@@ -6,9 +6,10 @@ import { StudioController } from './controller';
 import { StudioService } from './studio.service';
 import { ApiErrors } from './errors';
 import { SourceController } from './source.controller';
+import {FusionController} from './fusion.controller';
 import type { ProviderSet } from '@mongolsub/extraction';
 export async function createApi(config: Config, providers?:ProviderSet) {
-  @Module({ controllers: [StudioController,SourceController], providers: [{ provide: StudioService, useFactory: () => new StudioService(config,providers) }] })
+  @Module({ controllers: [StudioController,SourceController,FusionController], providers: [{ provide: StudioService, useFactory: () => new StudioService(config,providers) }] })
   class ApiModule {}
   const app = await NestFactory.create(ApiModule, { logger: ['error', 'warn', 'log'] });
   const origins = [config.WEB_ORIGIN];

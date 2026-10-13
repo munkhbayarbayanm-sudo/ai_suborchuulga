@@ -20,6 +20,7 @@ Runtime-validated metadata is persisted transactionally with final job status.
 `storage` owns physical media paths; `media` owns process invocation and parsing;
 `queue` owns Redis/BullMQ transport and durable dispatch. `extraction` owns subtitle
 parsing, safe normalization/sampling, within-OCR grouping and provider boundaries.
+`fusion` owns deterministic language summaries, bounded alignment and reconciliation.
 UI primitives remain inside web. Optional Python providers are separate from core boot.
 
 ## Import and job flow
@@ -72,7 +73,7 @@ Series declared language is extensible and independent of stream language tags.
 Streams preserve source codec/language/title/index; future extraction can reference
 asset+stream provenance. Future subtitle revisions/manual approvals, memory,
 edit operations and undo history must be separate entities, not mutations of
-original media. No translation/editor/fusion schemas or functionality exist through Phase 02.
+original media. Translation and professional editing remain future phases.
 
 ## Independent Phase 02 source flow
 
@@ -110,3 +111,39 @@ as correct. Public DTOs omit keys/paths and paginate both runs and segments.
 Known limits: temporary OCR disk budget, full bounded decoded audio in Python,
 long advisory transaction during preparation, filesystem/DB crash orphan window,
 single local provider/worker health model. No performance or deployment certification.
+
+## Derived Phase 03 transcript flow
+
+FusionService validates explicitly selected completed input run IDs belonging to one
+Episode/MediaAsset, with at most one embedded run. AUTO uses bounded evidence summaries;
+the stored en/zh choice, reason, input IDs, settings, algorithm version and revision
+are reproducible. SHA256 identity deduplicates default clicks and caller UUID retries.
+Source evidence remains immutable; no new Python, models or external AI calls.
+
+FUSE_TRANSCRIPT uses existing PostgreSQL durable dispatch and BullMQ worker. The pure
+fusion-v1 package traverses sorted bounded temporal windows, compares only the canonical
+language family, supports ordered split/merge bundles and selects existing source text.
+Cross-language/unknown evidence links are TIMING_ONLY with null textual scores/weights.
+See FUSION_ALGORITHM.md for exact defaults, formula, stable ties and complexity bounds.
+
+Worker reports loading/alignment/reconciliation/metrics/persistence stages, yields and
+checks cancellation. Final job-row lock, transcript batches, evidence links, metrics and
+COMPLETED run/job state share one transaction. Rejected writes leave no partial result;
+terminal redelivery is a no-op. Structured logs contain IDs/counts/durations, not transcripts.
+
+FusionRunInput and evidence composite foreign keys enforce media ownership and exact
+selected sources. Deferrable NO ACTION constraints preserve legitimate Episode/Series
+cascades while preventing standalone evidence deletion from invalidating history (ADR0004).
+
+TranscriptSegments retain derived text/timing separately from current manual values.
+Optimistic editRevision prevents lost updates; human approval is independent of heuristic
+confidence. Reruns create new runs; selecting or completing a run never changes the explicit
+Episode.activeFusionRunId. Batched includes return validated source DTOs/words without N+1
+queries. Run/segment pages default25/max100, with category/manual filters and stable timing
+ordering. UI pins chosen IDs across pagination/filter refreshes, displays alternatives and
+allows simple millisecond/text/review edits. Phase03 polling schedules after request settlement.
+
+Known limits: bounded windows and family comparisons cannot solve global drift, semantic
+ambiguity, Chinese script conversion or unknown-language lexical reconciliation. Coverage
+describes evidence intervals, not speech/translation completeness. Manual edits leave algorithm
+summary/confidence as a labelled completion snapshot. No professional editor/translation exists.

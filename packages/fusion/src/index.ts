@@ -1,0 +1,30 @@
+import { performance } from 'node:perf_hooks';
+import { fusionSettingsSchema } from '@mongolsub/contracts';
+import { AppError } from '@mongolsub/domain';
+import { align } from './alignment';
+import { languageFamily, unionDuration } from './language';
+import { reconcile } from './reconcile';
+import { validateInputs } from './validation';
+import type { FusionInput, FusionSettings, FusionResult, FusionHooks, Language } from './types';
+export * from './types';
+export { languageFamily, recommendLanguage } from './language';
+export const ALGORITHM_VERSION = 'fusion-v1';
+export async function fuseTranscript(inputs: FusionInput[], settings: FusionSettings, canonicalLanguage: Language, durationMs: number | null, hooks: FusionHooks = {}): Promise<FusionResult> {
+  hooks.check?.();
+  inputs = validateInputs(inputs); const parsedSettings = fusionSettingsSchema.safeParse(settings);
+  if (!parsedSettings.success || !['en', 'zh'].includes(canonicalLanguage) || (durationMs !== null && (!Number.isInteger(durationMs) || durationMs <= 0 || durationMs > 2147483647))) throw new AppError('FUSION_INVALID_INPUT', 'Fusion settings or duration is invalid.');
+  const all = inputs.flatMap(i => i.segments);
+  const dialogue = all.filter(s => languageFamily(s.language) === canonicalLanguage);
+  if (!dialogue.length) throw new AppError('FUSION_LANGUAGE_UNAVAILABLE', 'No selected evidence matches the requested canonical language.');
+  settings = parsedSettings.data;
+  await hooks.stage?.('alignment', 10); hooks.check?.(); const alignmentStart = performance.now();
+  const aligned = await align(inputs, settings, canonicalLanguage, hooks); const alignmentMs = performance.now() - alignmentStart;
+  await hooks.stage?.('reconciliation', 45); hooks.check?.(); const reconciliationStart = performance.now();
+  const segments = await reconcile(aligned.groups, settings, canonicalLanguage, hooks); const reconciliationMs = performance.now() - reconciliationStart;
+  hooks.check?.(); await hooks.stage?.('metrics', 75);
+  const coveredDialogueDurationMs = unionDuration(dialogue, durationMs);
+  const metrics = { episodeDurationMs: durationMs, coveredDialogueDurationMs, coverageRatio: durationMs === null ? null : Math.min(1, coveredDialogueDurationMs / durationMs), inputSegmentCount: all.length, canonicalSegmentCount: segments.length, singleSourceSegments: segments.filter(s => s.confidenceReasons.singleSource).length, multiSourceAgreedSegments: segments.filter(s => s.confidenceReasons.agreeingMethods.length > 1).length, conflictingSegments: segments.filter(s => s.confidenceReasons.conflictingSources > 0).length, highConfidenceCount: segments.filter(s => s.reviewCategory === 'HIGH_CONFIDENCE').length, reviewRecommendedCount: segments.filter(s => s.reviewCategory === 'REVIEW_RECOMMENDED').length, likelyProblemCount: segments.filter(s => s.reviewCategory === 'LIKELY_PROBLEM').length, unrepresentedTimingOnlySegments: aligned.unrepresented };
+  const totalDuration = segments.reduce((n, s) => n + s.endMs - s.startMs, 0);
+  const overallConfidence = totalDuration ? Math.round(segments.reduce((n, s) => n + s.confidence * (s.endMs - s.startMs), 0) / totalDuration * 1000000) / 1000000 : null;
+  return { segments, metrics, overallConfidence, timings: { alignmentMs, reconciliationMs } };
+}

@@ -1,0 +1,1 @@
+{ "name": "@mongolsub/fusion", "version": "0.3.0", "private": true, "type": "module", "exports": "./src/index.ts", "scripts": { "typecheck": "tsc --noEmit" }, "dependencies": { "@mongolsub/contracts": "workspace:*", "@mongolsub/domain": "workspace:*", "zod": "^3.25.0" } }

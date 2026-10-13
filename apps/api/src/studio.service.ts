@@ -10,17 +10,20 @@ import { toAsset, toEpisode, toJob, toSeries, toStream } from './dto';
 import { receiveVideo } from './upload';
 import { HttpProviders, type ProviderSet } from '@mongolsub/extraction';
 import { SourceService } from './source.service';
+import {FusionService} from './fusion.service';
 export class StudioService {
   readonly db: PrismaClient;
   readonly storage: StorageProvider;
   readonly redis;
   readonly queue;
   readonly sources:SourceService;
+  readonly fusions:FusionService;
   constructor(readonly config: Config, providers:ProviderSet = new HttpProviders(config)) {
     this.db = new PrismaClient({ datasourceUrl: config.DATABASE_URL });
     this.storage = new LocalStorage(config.STORAGE_ROOT);
     this.redis = redisConnection(config.REDIS_URL); this.queue = inspectionQueue(this.redis);
     this.sources = new SourceService(this.db,providers,config);
+    this.fusions=new FusionService(this.db);
   }
   async onModuleDestroy() { await this.queue.close(); this.redis.disconnect(); await this.db.$disconnect(); }
   async listSeries() { return (await this.db.series.findMany({ orderBy: { updatedAt: 'desc' }, take: 1000 })).map(toSeries); }

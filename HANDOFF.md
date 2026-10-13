@@ -1,14 +1,15 @@
-# Phase 02 handoff
+# Phase 03 handoff
 
-Read PROJECT_STATE.md first. Active branch is `codex/phase-02-source-extraction`,
-based directly on approved Phase 01 `acb3eaad4e2febb3eb747e287775eebfafc08ee8`.
-Implementation: `28a4f0dbad76067be2f3cf72ade8e6394186ca4a`.
-Inspect `git status` and `git log -3` for the final continuity HEAD.
-No merge, push, deployment, Phase 03 or translation is authorized/performed.
+Read PROJECT_STATE.md first. Branch codex/phase-03-transcript-fusion was created
+directly from approved Phase 02 bc416581c97ae0648f4ce3f21bf902c973034670.
+Phase 02 implementation was 28a4f0dbad76067be2f3cf72ade8e6394186ca4a.
+Phase 03 implementation commit: pending final commit; inspect git log -2 for
+implementation and continuity HEAD. No merge, push or external deployment performed.
+Phase 03 is the stopping point. Phase 04 requires new explicit user authorization.
 
-## Start this Windows checkout
+## Startup on this Windows checkout
 
-Private .env and ignored portable tools exist locally. In separate terminals:
+Private .env, portable tools and model caches remain ignored. Separate terminals:
 
 ```powershell
 pnpm dev:local-infra
@@ -18,91 +19,96 @@ pnpm db:migrate
 pnpm dev
 ```
 
-Open http://127.0.0.1:3000. Core app boots without Python; embedded extraction
-remains available. Stop apps and portable infrastructure with Ctrl+C. Root dev
-runner resolves shared absolute storage/work roots before Turbo changes directories.
-Final verification processes are stopped; data persists.
+Open http://127.0.0.1:3000. Fusion works without the Python provider service; it uses
+completed stored evidence. Embedded extraction remains available without AI.
+For optional inference, follow docs/PROVIDERS.md, pinned Python3.11 uv environment,
+private provider token and pnpm dev:providers. No new keys/models are needed here.
 
-For actual optional inference install uv/Python 3.11, then:
+For compiled runtime from repository root, with .env loaded:
 
 ```powershell
-uv sync --project services/providers --locked --extra asr --extra ocr
-# Set private EXTRACTION_PROVIDER_TOKEN identically in ignored .env.
-pnpm dev:providers
+pnpm exec dotenv -e .env -- node apps/api/dist/main.js
+pnpm exec dotenv -e .env -- node apps/worker/dist/main.js
+pnpm --filter @mongolsub/web exec next start --hostname 127.0.0.1
 ```
 
-See docs/PROVIDERS.md before setup. The bootstrap loads .env, resolves absolute
-storage/work/model roots and launches the locked installed environment with
---no-sync. It binds authenticated loopback8765. CPU is default. Model downloads
-occur only when actual extraction is requested. Existing ASR/alignment caches
-are under ignored data/provider-smoke/models and Paddle cache under .paddlex.
-No HF token is required for basic ASR or alignment; gated diarization is optional.
-
-Fresh checkouts should follow README/PROVIDERS; current FFmpeg/ffprobe recommended.
-Docker Compose remains preferred but this host's pre-existing Docker engine failure
-was not repaired or bypassed by changing Docker settings.
+Stop owned services with Ctrl+C. Final verification services are stopped; local data
+persists. Docker host socket failure remains unresolved. The root dev runner keeps
+shared storage/work roots absolute. Do not change unrelated services.
 
 ## Manual workflow
 
-1. Create/open a Series and Episode; import media, wait for inspection READY.
-2. Select the media. Inspect subtitle/audio index, title, language, codec/channels.
-3. Select supported embedded text tracks, extract. PGS/VobSub codecs are unavailable.
-4. Select an audio stream, Auto/English/Chinese hint and optional alignment/diarization.
-5. OCR: English/Simplified/Traditional hint, bottom/full frame,4 fps default,
-   lower40% default, confidence threshold. This is an initial sampled OCR baseline.
-6. Observe queued/processing/completed/failed/cancelled per independent run.
-7. Select a run and a segment; inspect provider/version/model/media/stream/language,
-   confidence, words, speaker and scoped metadata. Use pagination for long results.
-8. Ordinary repeated requests reuse their run; Run again creates a UUID revision.
-   Repeated transport attempts for that UUID reuse the same revision.
-9. Stop providers to verify unavailable ASR/OCR and continued embedded/core readiness.
+1. Import/inspect media and extract independent sources as in Phase 02.
+2. In Transcript reconciliation, select exact completed input runs for the chosen
+   media. Up to 12 inputs, at most 1 embedded run; old experimental reruns stay unchecked.
+3. Choose AUTO/English/Chinese, optionally adjust saved algorithm thresholds. Different
+   language families are timing-only. AUTO's result and reason are visible on the run.
+4. Build transcript. Observe durable queued/processing/completed/failed/cancelled jobs.
+   Matching requests reuse identity; Run again creates a separate caller UUID revision.
+5. Select a completed history entry. Viewing/new completion never activates it.
+6. Inspect canonical lines and original candidates side by side, roles, similarity/IoU,
+   reasons, provider metadata, words and anonymous speakers. Use paginated issue filters.
+7. Edit canonical text and integer start/end milliseconds; optionally mark Reviewed or
+   Approved. Edits preserve derived values and all source evidence; normal edits reset
+   human review to Unreviewed. Stale edits receive409 and must reload the latest revision.
+8. Make the chosen transcript active explicitly. A rerun preserves earlier edits and
+   the active choice. Confidence/categories/summary stay the algorithm completion snapshot.
+9. Cancel queued/processing runs before final commit; no partial completed transcript
+   appears. Cancellation after completion cannot undo committed history.
 
-`pnpm fixture:sources` creates legal3 second media: video, two tone audio tracks,
-English SRT, Simplified ASS and Traditional SRT. Tone audio is NOT speech ASR evidence.
-`pnpm test:smoke:sources` is explicit REAL-provider smoke requiring synthetic
-SAPI WAV and3drawn image assets prepared under data/provider-smoke. It generates
-legal7 second burned-subtitle videos, imports them and persists actual provider runs.
-Its IDs/results stay in ignored data/phase02-runtime-smoke.json. Do not commit media.
+Existing legal actual-provider smoke records are in ignored data/phase02-runtime-smoke.json.
+pnpm test:smoke:fusion consumes them through compiled API/worker, compares source
+payloads before/after, edits/approves/activates and verifies rerun history. It requires
+those local records, not fresh provider inference; creates new synthetic fusion history.
+Its report is data/phase03-runtime-smoke.json. Screenshots are data/phase03-fusion-*.jpg.
 
-## Validation / recovery boundaries
+## Validation and recovery
 
-Stop all other MongolSub workers before integration tests: the suite owns a
-temporary storage root while using real PostgreSQL/Redis. Never flush shared Redis
-or truncate databases. It cleans only test Series and owned temporary files.
+Stop all other MongolSub workers before integration: tests own temporary media roots.
+Never flush shared Redis, truncate databases or delete unowned records.
 
 ```powershell
+pnpm db:migrate
+pnpm db:test:migrations
 pnpm lint
-pnpm typecheck
 pnpm test
 pnpm test:integration
+pnpm benchmark:fusion
+pnpm benchmark:fusion:persistence
+# Stop the production web server before rebuilding on Windows.
 pnpm build
-pnpm db:migrate
-uv run --directory services/providers --locked --no-sync pytest -q
-uv run --directory services/providers --locked --no-sync ruff check .
-uv run --directory services/providers --locked --no-sync ruff format --check .
+pnpm typecheck
 ```
 
-For compiled runtime, start .env-loaded `node apps/api/dist/main.js` and
-`node apps/worker/dist/main.js` from the root; run
-`pnpm --filter @mongolsub/web exec next start --hostname 127.0.0.1`.
-Configured roots must be the same physical directories as the provider.
-See docs/VALIDATION.md for real versus injected-provider results.
+Build and typecheck share generated Next files; run them sequentially. OneDrive
+read-only/reparse generated .next caused EPERM cleanup. The owned previous build
+was preserved under ignored .tools/phase03-next-prior and a fresh build passed.
+Do not delete user work or disable OneDrive/security settings as a workaround.
 
-Failure codes distinguish dependency/model absence, OOM, timeout, provider drift,
-invalid output/media and cancellation. No expensive automatic retry is used;
-intentional reruns are explicit. Transient inference failures do not permanently
-disable readiness. Dependency/model startup failures require configuration/restart.
-Cancelled evidence cannot persist after the database cancellation lock wins.
-Temporary media is removed after normal completion/failure/cancellation. Crashes
-still need a future carefully scoped reconciliation policy.
+Migrations003/004 are additive. Composite references prevent cross-media input links
+and source deletion leaving invalid evidence. Deferrable NO ACTION ownership/active
+foreign keys allow normal Episode/Series cascade cleanup while rejecting standalone
+evidence destruction at transaction commit. Migration004's initially incorrect long
+FK name was repaired after marking its failed transaction rolled back; clean-schema
+apply of all four migrations and final reapply passed. Do not rewrite applied migrations.
 
-## Exact future continuation point
+Fusion final transaction locks the job state before any transcript/evidence batches.
+Failure rolls back all rows; cancellation wins only before this lock/commit. At-least-once
+terminal delivery is a no-op. Process crashes while PROCESSING share existing worker
+recovery limitations; no automatic destructive cleanup policy was added.
 
-Await explicit Phase 03 authorization. Then define cross-source temporal alignment,
-candidate reconciliation and consensus schema/service/contracts against the existing
-independent runs/segments/word timing; preserve all immutable source provenance.
-Do not claim Chinese speech/GPU/diarization/long-media validation from existing tests.
-Do not introduce translation/editor/render features without their separate approvals.
+See docs/PHASE_03_VALIDATION.md for exact results, deterministic synthetic tests versus
+actual stored Phase02 evidence, benchmark scope and known limits. No new real ASR/OCR
+inference, Chinese speech/GPU/diarization or long-episode quality was claimed here.
 
-Required reads: PROJECT_STATE, HANDOFF, AGENTS, docs/MASTER_SPEC,
-ARCHITECTURE, ROADMAP, DOMAIN_MODEL, PROVIDERS, VALIDATION and docs/adr/*.
+## Exact future continuation
+
+STOP until explicit Phase 04 authorization. Consume the explicitly active completed
+FusionRun, its current canonical TranscriptSegments and independent human review
+state; retain links to immutable source text, words, stream and provider provenance.
+Introduce localization records separately without overwriting canonical/manual or
+source history. No translation/editor/render functionality is implemented by this phase.
+
+Required reads: PROJECT_STATE, HANDOFF, AGENTS, docs/MASTER_SPEC, ARCHITECTURE,
+ROADMAP, DOMAIN_MODEL, PROVIDERS, VALIDATION, PHASE_02_VALIDATION,
+PHASE_03_VALIDATION, FUSION_ALGORITHM and docs/adr/*.

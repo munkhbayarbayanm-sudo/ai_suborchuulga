@@ -22,6 +22,34 @@ enum JobType {
   EXTRACT_EMBEDDED_SUBTITLE
   TRANSCRIBE_AUDIO
   OCR_BURNED_SUBTITLE
+  FUSE_TRANSCRIPT
+}
+
+enum FusionLanguage {
+  AUTO
+  ENGLISH
+  CHINESE
+}
+enum ReviewCategory {
+  HIGH_CONFIDENCE
+  REVIEW_RECOMMENDED
+  LIKELY_PROBLEM
+}
+enum ReviewStatus {
+  UNREVIEWED
+  REVIEWED
+  APPROVED
+}
+enum DerivationType {
+  DIRECT
+  RECONCILED
+  MANUAL
+}
+enum EvidenceRole {
+  PRIMARY
+  SUPPORTING
+  TIMING_ONLY
+  CONFLICTING
 }
 enum ExtractionMethod {
   EMBEDDED_SUBTITLE
@@ -53,11 +81,15 @@ model Episode {
   series Series @relation(fields: [seriesId], references: [id], onDelete: Cascade)
   title String @db.VarChar(200)
   episodeNumber Int?
+  sourceLanguage String? @db.VarChar(35)
+  activeFusionRunId String? @db.Uuid
+  activeFusionRun FusionRun? @relation("ActiveFusion", fields: [activeFusionRunId, id], references: [id, episodeId], onDelete: NoAction)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   mediaAssets MediaAsset[]
   jobs ProcessingJob[]
   extractions SourceExtractionRun[]
+  fusionRuns FusionRun[] @relation("EpisodeFusions")
   @@index([seriesId])
 }
 model MediaAsset {
@@ -79,6 +111,7 @@ model MediaAsset {
   jobs ProcessingJob[]
   extractions SourceExtractionRun[]
   derivatives MediaDerivative[]
+  fusionRuns FusionRun[]
   @@unique([id, episodeId])
   @@index([episodeId])
 }
@@ -116,6 +149,7 @@ model ProcessingJob {
   completedAt DateTime?
   updatedAt DateTime @updatedAt
   extractionRun SourceExtractionRun?
+  fusionRun FusionRun?
   @@index([status, createdAt])
   @@index([episodeId])
   @@index([mediaAssetId])
@@ -150,6 +184,8 @@ model SourceExtractionRun {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   segments SourceSegment[]
+  fusionInputs FusionRunInput[]
+  @@unique([id, mediaAssetId])
   @@index([episodeId, createdAt])
   @@index([mediaAssetId, method])
 }
@@ -167,6 +203,8 @@ model SourceSegment {
   words Json @default("[]")
   providerMetadata Json
   createdAt DateTime @default(now())
+  evidenceLinks TranscriptEvidenceLink[]
+  @@unique([id, extractionRunId])
   @@unique([extractionRunId, sequence])
   @@index([extractionRunId, startMs, sequence])
 }
@@ -182,4 +220,95 @@ model MediaDerivative {
   sizeBytes BigInt
   createdAt DateTime @default(now())
   @@unique([mediaAssetId, type, streamIndex, settingsHash])
+}
+
+model FusionRun {
+  id String @id @default(uuid()) @db.Uuid
+  episodeId String @db.Uuid
+  episode Episode @relation("EpisodeFusions", fields: [episodeId], references: [id], onDelete: Cascade)
+  selectedBy Episode[] @relation("ActiveFusion")
+  mediaAssetId String @db.Uuid
+  mediaAsset MediaAsset @relation(fields: [mediaAssetId, episodeId], references: [id, episodeId], onDelete: Cascade)
+  requestedLanguage FusionLanguage
+  canonicalLanguage String @db.VarChar(2)
+  languageReason String
+  status JobStatus @default(QUEUED)
+  algorithmVersion String @db.VarChar(80)
+  settings Json
+  revision String @default("default") @db.VarChar(36)
+  identityHash String @unique @db.VarChar(64)
+  overallConfidence Float?
+  coverageMetrics Json?
+  processingJobId String @unique @db.Uuid
+  processingJob ProcessingJob @relation(fields: [processingJobId], references: [id], onDelete: Cascade)
+  stage String?
+  alignmentDurationMs Int?
+  reconciliationDurationMs Int?
+  persistenceDurationMs Int?
+  processingDurationMs Int?
+  startedAt DateTime?
+  completedAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  inputs FusionRunInput[]
+  segments TranscriptSegment[]
+  @@unique([id, episodeId])
+  @@unique([id, mediaAssetId])
+  @@index([episodeId, createdAt])
+}
+model FusionRunInput {
+  fusionRunId String @db.Uuid
+  sourceExtractionRunId String @db.Uuid
+  mediaAssetId String @db.Uuid
+  fusionRun FusionRun @relation(fields: [fusionRunId, mediaAssetId], references: [id, mediaAssetId], onDelete: Cascade)
+  sourceExtractionRun SourceExtractionRun @relation(fields: [sourceExtractionRunId, mediaAssetId], references: [id, mediaAssetId], onDelete: NoAction)
+  evidenceLinks TranscriptEvidenceLink[]
+  @@id([fusionRunId, sourceExtractionRunId])
+  @@index([sourceExtractionRunId])
+}
+model TranscriptSegment {
+  id String @id @default(uuid()) @db.Uuid
+  fusionRunId String @db.Uuid
+  fusionRun FusionRun @relation(fields: [fusionRunId], references: [id], onDelete: Cascade)
+  sequence Int
+  startMs Int
+  endMs Int
+  text String
+  derivedStartMs Int
+  derivedEndMs Int
+  derivedText String
+  language String @db.VarChar(2)
+  speaker String? @db.VarChar(100)
+  confidence Float
+  reviewCategory ReviewCategory
+  reviewStatus ReviewStatus @default(UNREVIEWED)
+  derivationType DerivationType
+  contentType String @default("UNKNOWN") @db.VarChar(20)
+  confidenceReasons Json
+  manualEditedAt DateTime?
+  editRevision Int @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  evidence TranscriptEvidenceLink[]
+  @@unique([id, fusionRunId])
+  @@unique([fusionRunId, sequence])
+  @@index([fusionRunId, startMs, sequence])
+  @@index([fusionRunId, reviewCategory, startMs])
+  @@index([fusionRunId, manualEditedAt])
+}
+model TranscriptEvidenceLink {
+  transcriptSegmentId String @db.Uuid
+  fusionRunId String @db.Uuid
+  sourceSegmentId String @db.Uuid
+  sourceExtractionRunId String @db.Uuid
+  transcriptSegment TranscriptSegment @relation(fields: [transcriptSegmentId, fusionRunId], references: [id, fusionRunId], onDelete: Cascade)
+  sourceSegment SourceSegment @relation(fields: [sourceSegmentId, sourceExtractionRunId], references: [id, extractionRunId], onDelete: NoAction)
+  input FusionRunInput @relation(fields: [fusionRunId, sourceExtractionRunId], references: [fusionRunId, sourceExtractionRunId], onDelete: NoAction)
+  role EvidenceRole
+  alignmentScore Float
+  textSimilarity Float?
+  temporalOverlap Float
+  contributionWeight Float?
+  @@id([transcriptSegmentId, sourceSegmentId])
+  @@index([sourceSegmentId])
 }

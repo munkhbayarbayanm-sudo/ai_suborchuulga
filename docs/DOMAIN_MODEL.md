@@ -1,12 +1,12 @@
-# Domain model through Phase 02
+# Domain model through Phase 03
 
 | Entity | Purpose / invariants |
 |---|---|
 | Series | Title, description, optional declared source language; many Episodes |
-| Episode | Series, title, optional number; many original assets, jobs and extraction runs |
+| Episode | Series, title, optional number/source language; original assets, jobs, extraction/fusion runs; explicit activeFusionRunId |
 | MediaAsset | Immutable original storage reference/filename/bytes/inspection; many streams/runs/derivatives |
 | MediaStream | Exact asset-local index, type, codec, source language/title and audio/video metadata |
-| ProcessingJob | INSPECT_MEDIA, EXTRACT_EMBEDDED_SUBTITLE, TRANSCRIBE_AUDIO or OCR_BURNED_SUBTITLE |
+| ProcessingJob | INSPECT_MEDIA, EXTRACT_EMBEDDED_SUBTITLE, TRANSCRIBE_AUDIO, OCR_BURNED_SUBTITLE or FUSE_TRANSCRIPT |
 | SourceExtractionRun | One independent method/provider/version/model/settings/revision execution for an asset and optional selected stream |
 | SourceSegment | Timed source text and language/confidence/speaker, sequence, validated words and provider-scoped metadata |
 | MediaDerivative | Cached AUDIO_MONO_16K PCM16 artifact; original asset, selected audio index, opaque key, normalization snapshot/hash/size |
@@ -59,5 +59,33 @@ Cancellation and final persistence serialize on the job row. Segment creation an
 successful state transition are atomic. Stable ordering is startMs then sequence;
 run and segment API pages have explicit offsets/limits (maximum100items).
 
-No fusion, translated transcript, glossary/memory, editor/timeline, render or QC
-entities exist. A future authorized Phase 03 must retain this evidence unchanged.
+## Derived transcript and evidence
+
+| Entity | Purpose / invariants |
+|---|---|
+| FusionRun | Episode/asset, requested AUTO/ENGLISH/CHINESE and resolved en/zh/reason, algorithmVersion, settings snapshot, revision/identity, unique job, status/stage, metrics/confidence/durations/timestamps |
+| FusionRunInput | Exact selected extraction run IDs; composite run/media and extraction/media foreign keys |
+| TranscriptSegment | Fusion run/sequence, current and original derived text/timing, en/zh, nullable anonymous speaker, heuristic confidence/category/reasons, human review state, DIRECT/RECONCILED/MANUAL, UNKNOWN content type, editRevision/manualEditedAt |
+| TranscriptEvidenceLink | Canonical segment to original source segment and selected source run; PRIMARY/SUPPORTING/CONFLICTING/TIMING_ONLY, alignment/IoU, nullable text similarity/contribution |
+
+Source records and words are never copied over or mutated to create canonical text.
+Links retain the stable path to original word timing/provider/stream provenance. Integer
+milliseconds preserve Phase02 media time zero and delayed audio. SQL checks protect
+positive current/derived intervals, nonempty text, score0..1 and null TIMING_ONLY text votes.
+Composite links prevent wrong run/media/episode evidence. Relevant indexes cover run+sequence,
+run+start/sequence, run+category/start, run+manualEditedAt and source-segment reverse links.
+
+Original derived values survive manual edits. Text/timing edits become MANUAL and reset
+human state unless an explicit action is included; review-only changes keep derivation.
+Expected editRevision implements optimistic concurrency (409 on stale edit). Confidence
+category HIGH_CONFIDENCE/REVIEW_RECOMMENDED/LIKELY_PROBLEM is independent from
+UNREVIEWED/REVIEWED/APPROVED. Completed algorithm metrics remain a historical snapshot.
+
+Rerun identity includes sorted input IDs, normalized settings, requested/resolved language,
+algorithm version and default or caller UUID revision. Every revision has independent
+segments/manual history. Only explicit activation selects a completed run from the same
+Episode. Completion/newest history never auto-activates. Deferrable evidence/active ownership
+FKs permit Episode cascades without permitting orphan evidence at commit; see ADR0004.
+
+No translated transcript, glossary/memory intelligence, professional editor/timeline,
+render or QC entities exist. Phase04 is deferred pending explicit user authorization.

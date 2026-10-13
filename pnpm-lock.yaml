@@ -44,6 +44,9 @@ importers:
       vitest:
         specifier: ^3.2.0
         version: 3.2.7(@types/node@24.19.2)(jiti@2.7.0)(lightningcss@1.32.0)(supports-color@7.2.0)(tsx@4.23.15)
+      zod:
+        specifier: ^3.25.0
+        version: 3.25.76
 
   apps/api:
     dependencies:
@@ -62,6 +65,9 @@ importers:
       '@mongolsub/extraction':
         specifier: workspace:*
         version: link:../../packages/extraction
+      '@mongolsub/fusion':
+        specifier: workspace:*
+        version: link:../../packages/fusion
       '@mongolsub/media':
         specifier: workspace:*
         version: link:../../packages/media
@@ -154,6 +160,9 @@ importers:
       '@mongolsub/extraction':
         specifier: workspace:*
         version: link:../../packages/extraction
+      '@mongolsub/fusion':
+        specifier: workspace:*
+        version: link:../../packages/fusion
       '@mongolsub/media':
         specifier: workspace:*
         version: link:../../packages/media
@@ -211,6 +220,18 @@ importers:
       '@mongolsub/media':
         specifier: workspace:*
         version: link:../media
+      zod:
+        specifier: ^3.25.0
+        version: 3.25.76
+
+  packages/fusion:
+    dependencies:
+      '@mongolsub/contracts':
+        specifier: workspace:*
+        version: link:../contracts
+      '@mongolsub/domain':
+        specifier: workspace:*
+        version: link:../domain
       zod:
         specifier: ^3.25.0
         version: 3.25.76

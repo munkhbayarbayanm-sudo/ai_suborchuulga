@@ -302,3 +302,47 @@ progress::-moz-progress-bar { background: var(--color-accent); }
   *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
   .button:active:not(:disabled), .index-row:active, .asset-row:active { transform: none; }
 }
+.fusion-inputs { padding: var(--space-lg); }
+.fusion-inputs form { display: grid; gap: var(--space-md); margin-top: var(--space-md); }
+.fusion-inputs fieldset { padding: 0; border: 0; min-width: 0; }
+.fusion-inputs legend { font-weight: 600; margin-bottom: var(--space-sm); }
+.fusion-choice { border-bottom: var(--rule-thin) solid var(--color-rule); }
+.fusion-selection { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-sm); font-size: var(--text-xs); }
+.fusion-selected-input { display: inline-flex; align-items: center; gap: var(--space-sm); padding-left: var(--space-sm); background: var(--color-paper-3); border: var(--rule-thin) solid var(--color-rule); border-radius: var(--radius-sm); }
+.fusion-selected-input button { min-width: 36px; min-height: 36px; padding: var(--space-xs); border: 0; background: transparent; color: var(--color-ink-2); font-size: var(--text-lg); }
+.fusion-advanced, .fusion-run-details, .fusion-reasons { border-top: var(--rule-thin) solid var(--color-rule); padding: var(--space-md) 0; }
+.fusion-panel summary { cursor: pointer; min-height: 36px; padding: var(--space-xs) 0; }
+.fusion-inputs .button { justify-self: start; max-width: 100%; white-space: normal; }
+.fusion-settings-grid, .fusion-edit-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-md); margin-top: var(--space-md); }
+.fusion-settings-grid label, .fusion-edit-grid label { font-size: var(--text-xs); }
+.fusion-metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--space-md); padding: var(--space-md) 0; }
+.fusion-metrics span { display: block; font-size: var(--text-xs); color: var(--color-muted); }
+.fusion-metrics strong { display: block; font-size: var(--text-lg); font-weight: 500; margin-top: var(--space-xs); }
+.fusion-input-history { padding-left: var(--space-lg); margin: var(--space-sm) 0; }
+.fusion-input-history li { margin-bottom: var(--space-md); overflow-wrap: anywhere; }
+.fusion-transcript { margin-top: var(--space-lg); }
+.fusion-confidence { display: flex; flex-wrap: wrap; gap: var(--space-sm) var(--space-md); color: var(--color-muted); font-size: var(--text-xs); margin-top: var(--space-sm); }
+.review-category.high_confidence { color: var(--color-success); }
+.review-category.review_recommended { color: var(--color-accent); }
+.review-category.likely_problem, .evidence-role.conflicting { color: var(--color-error); }
+.fusion-segment-inspector { margin-top: var(--space-lg); padding-top: var(--space-lg); border-top: var(--rule-thin) solid var(--color-rule); }
+.fusion-reasons { margin-top: var(--space-md); }
+.fusion-reasons ul { padding-left: var(--space-lg); font-size: var(--text-sm); }
+.fusion-evidence-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-md); }
+.fusion-evidence-card { min-width: 0; border: var(--rule-thin) solid var(--color-rule); border-radius: var(--radius-sm); padding: var(--space-md); }
+.fusion-evidence-card h4 { font-size: var(--text-sm); }
+.fusion-evidence-card .evidence-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.derived-evidence { background: var(--color-paper); }
+.evidence-role { font-size: var(--text-xs); color: var(--color-muted); margin-top: var(--space-xs); }
+.evidence-text { white-space: pre-wrap; overflow-wrap: anywhere; margin-top: var(--space-md); }
+.fusion-words { list-style: none; padding: 0; margin: var(--space-sm) 0; }
+.fusion-words li { padding: var(--space-sm) 0; border-top: var(--rule-thin) solid var(--color-rule); font-size: var(--text-xs); }
+.fusion-words strong, .fusion-words span { display: block; overflow-wrap: anywhere; }
+.fusion-words span { color: var(--color-muted); margin-top: var(--space-xs); }
+.canonical-edit { border-top: var(--rule-thin) solid var(--color-rule); margin-top: var(--space-lg); padding-top: var(--space-lg); }
+.canonical-edit > .field { margin-top: var(--space-md); }
+.canonical-edit textarea { min-height: 100px; }
+.fusion-panel .form-actions { flex-wrap: wrap; }
+.fusion-panel .button { white-space: normal; }
+@media (max-width: 1000px) { .fusion-metrics { grid-template-columns: repeat(3, minmax(0, 1fr)); } .fusion-edit-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .fusion-edit-grid > .field:last-child { grid-column: 1 / -1; } }
+@media (max-width: 767px) { .fusion-panel { order: 4; } .editor-reserve { order: 5; } .fusion-inputs { padding: var(--space-md); } .fusion-evidence-grid { grid-template-columns: minmax(0, 1fr); } .fusion-metrics, .fusion-settings-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .fusion-transcript .source-list-heading > .field { width: 100%; } .fusion-metrics strong { font-size: var(--text-base); } }
