@@ -2,7 +2,8 @@
 
 Read PROJECT_STATE.md first. Active branch is `codex/phase-02-source-extraction`,
 based directly on approved Phase 01 `acb3eaad4e2febb3eb747e287775eebfafc08ee8`.
-Inspect `git status` and `git log -3` for the implementation and continuity commits.
+Implementation: `28a4f0dbad76067be2f3cf72ade8e6394186ca4a`.
+Inspect `git status` and `git log -3` for the final continuity HEAD.
 No merge, push, deployment, Phase 03 or translation is authorized/performed.
 
 ## Start this Windows checkout

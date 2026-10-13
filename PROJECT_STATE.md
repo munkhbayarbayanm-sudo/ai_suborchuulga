@@ -8,7 +8,8 @@ Updated 2026-10-13, Asia/Ulaanbaatar.
 | Completed scope | Independent embedded subtitle, ASR and OCR evidence; local validation |
 | Approved Phase 01 baseline | `acb3eaad4e2febb3eb747e287775eebfafc08ee8` |
 | Active branch | `codex/phase-02-source-extraction`, created directly from approved baseline |
-| Latest implementation commit | See `git log -2`; final continuity commit records implementation hash |
+| Latest implementation commit | `28a4f0dbad76067be2f3cf72ade8e6394186ca4a` |
+| Latest continuity commit | Current HEAD; inspect `git log -2` |
 | Merge / push | Neither authorized nor performed |
 | Next phase | Phase 03 requires new explicit authorization |
 | Deployment | No external deployment; Docker Compose host failure remains unverified |

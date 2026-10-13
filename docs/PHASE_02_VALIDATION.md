@@ -2,6 +2,7 @@
 
 Approved baseline: acb3eaad4e2febb3eb747e287775eebfafc08ee8.
 Branch: codex/phase-02-source-extraction, based directly on that commit.
+Implementation: 28a4f0dbad76067be2f3cf72ade8e6394186ca4a; final continuity at HEAD.
 No Phase 03, fusion, translation, editor, render or deployment implementation.
 
 ## Executed automated evidence
@@ -79,6 +80,14 @@ provider/version/model, requested versus detected language, null confidence/spea
 and aligned words. Embedded selection reused its existing run; intentional rerun
 and persisted status/results were inspected. Chinese results remained separate.
 Provider unavailable behavior leaves core/embedded usable and is visible in UI.
+After the final timestamp/cancellation-order adjustment, the latest compiled worker
+also completed an embedded run with Python stopped and verified stable startedAt /
+completedAt / processingDurationMs. Evidence: data/phase02-postreview-smoke.json.
+
+An initial concurrent Phase 01 smoke exceeded its 20-second inspection wait while
+both shared worker slots were occupied by real ASR/OCR. The queued inspection then
+completed normally; the smoke rerun after extraction finished passed. No inspection
+priority is claimed, and long extraction jobs can delay queued inspection work.
 
 Responsive browser checks cover320/375/768px and desktop, no horizontal overflow
 or clipped essential source controls. ASR detail screenshot is ignored local
