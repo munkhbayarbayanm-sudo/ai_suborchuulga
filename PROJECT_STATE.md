@@ -4,82 +4,88 @@ Updated 2026-10-13, Asia/Ulaanbaatar.
 
 | Field | State |
 |---|---|
-| Current phase | Phase 01: foundation + media import |
-| Last authorized phase | Phase 01 only |
-| Last completed phase | Phase 01 implementation and local validation |
-| Active branch | `codex/phase-01-foundation` |
-| Latest implementation commit | `972641bc773628e879304de9922abc76784bfb4d` |
-| Latest approved commit | None explicitly reviewed/approved by the user yet |
-| Initial repository | Empty Git repository, no commits, no user files |
-| Integration/deployment status | Local real-service validation passed; Docker Compose host startup unverified; no remote deployment |
+| Current / last authorized phase | Phase 02: multilingual source extraction |
+| Completed scope | Independent embedded subtitle, ASR and OCR evidence; local validation |
+| Approved Phase 01 baseline | `acb3eaad4e2febb3eb747e287775eebfafc08ee8` |
+| Active branch | `codex/phase-02-source-extraction`, created directly from approved baseline |
+| Latest implementation commit | See `git log -2`; final continuity commit records implementation hash |
+| Merge / push | Neither authorized nor performed |
+| Next phase | Phase 03 requires new explicit authorization |
+| Deployment | No external deployment; Docker Compose host failure remains unverified |
 
-## Implementation and completed milestones
+## Implemented
 
-pnpm/Turbo monorepo; Next web, Nest API, separate BullMQ worker; strict validated
-contracts/config; Prisma PostgreSQL schema + checked-in migration for five required
-entities; streaming local StorageProvider; original media preservation; bounded
-FFprobe process and typed parser; transactionally persisted metadata/streams/job
-results; durable dispatch, failed-transport reconciliation and bounded shutdown;
-Series/Episode create/read/update; actual import/status/metadata UI and disabled
-future editor areas; synthetic fixture; tests; ADRs and continuity docs.
+Phase 01 stack and behavior remain: Next/Nest/Prisma PostgreSQL/Redis BullMQ,
+separate worker, streamed immutable original media, FFmpeg/ffprobe boundary.
 
-Fresh evidence: 38 unit/web tests, 9 real integration tests, lint, typecheck (all
-packages plus tooling), three production builds. Actual root `pnpm dev` startup,
-shared storage and live success/failure smoke passed. Compiled API/worker and Next
-production server also passed live smoke. Browser create/edit/import/poll/reload,
-invalid-media error and 320/375/414/768/desktop layouts were verified.
+Phase 02 adds SourceExtractionRun, SourceSegment and MediaDerivative, strict
+contracts, composite ownership constraints, integer milliseconds, validated word
+timing and provider-scoped metadata. Selected text streams map exactly through
+FFmpeg; image subtitle codecs are honestly unsupported. Mono16k PCM16 audio is
+cached independently of ASR settings and retains delayed audio via leading silence.
 
-No Phase 02 code was started. No ASR/OCR/translation/source extraction, memory,
-subtitle/video editor, waveform, render/export or QC functionality/schema exists.
+A private optional long-lived Python 3.11 HTTP service supplies real WhisperX
+and PaddleOCR PP-OCRv5. CPU is default; dependency/model readiness is independent
+of core boot. ASR uses Auto/en/zh; Chinese speech does not imply script. OCR uses
+en/zh-CN/zh-TW, normalized lower region or full frame, default 4 fps, bounded temporary
+frames and deterministic within-run grouping. No cross-source fusion.
 
-## Open tasks and known limitations
+Episode UI exposes streams/settings/readiness, independent jobs, cancellation,
+intentional reruns, paginated read-only segments, words and provenance. Default
+identical requests reuse a deterministic identity; explicit caller UUID revisions
+reuse on transport retries. Provider version/model drift rejects the run.
 
-No remaining Phase 01 implementation task. Docker Desktop on this host has a
-pre-existing inaccessible `dockerInference` runtime socket and does not start its
-Linux engine. Preferred Compose startup is supplied but unverified here. Verified
-Windows portable fallback is documented; its pinned FFprobe4.0.2 is old and should
-be replaced with current supported tools before processing real untrusted media.
+## Executed evidence
 
-This is a trusted local-user foundation: no auth/roles, no S3, no API deletion/cancel
-or manual retry UI, no server video playback. Re-import is the retry path. Lists are
-bounded for development, not paginated production libraries. Multi-gigabyte limits
-are configured but performance/load/large episode benchmarking was not performed.
-No real user/copyrighted video, Linux platform or external deployment was tested.
+56 TypeScript unit/web tests; 21 real HTTP/PostgreSQL/Redis/BullMQ/storage/FFmpeg
+integration tests; 21 Python tests, 1 Windows symlink-privilege skip. Lint,
+typecheck11 packages+tooling, all 3production builds, migration apply/reapply,
+Python lint/format/compile and compiled application runtime checks passed.
+See docs/VALIDATION.md for commands, exact boundaries and final browser evidence.
 
-## Technical and product risks
+Actual CPU provider HTTP tests recognized synthesized English speech and aligned
+14 words. Actual Paddle recognized English, Simplified and Traditional Chinese.
+Compiled worker/API persisted all 5independent real runs:1embedded,1EnglishASR
+(3 segments / 14 words),3OCR language configurations. No fake provider is used by the
+production application. Integration tests explicitly inject deterministic providers.
 
-Filesystem/database crash window may leave orphan files. Redis loss after a job is
-PROCESSING without a retained transport record needs later recovery policy; do not
-blindly reset/delete jobs. Single heartbeat is adequate for one local worker, not
-distributed fleet health. Windows development Ctrl+C stops its own child process
-tree; an interrupted active inspection relies on BullMQ stalled recovery. Advanced
-retry/resume/lifecycle cleanup and production hardening stay deferred to Phase10.
+## Environment / limitations
 
-Future AI quality/confidence/localization claims remain unproven. Manual approvals,
-source provenance, series/character memory and non-destructive edit histories need
-separate future entities and must never mutate original media or silently replace
-human-approved text.
+Windows Node24.15/pnpm11.25; Python 3.11.15 isolated uv environment with154 locked
+packages; WhisperX 3.4.2/base, PaddleOCR 3.2/Paddle 3.2 PP-OCRv5 mobile.
+GTX 1660 Ti 6 GB exists, but all actual inference was CPU. GPU, Chinese speech ASR,
+speaker diarization, long episode quality/performance and external deployment were
+not executed. English ASR and all 3OCR configurations were actually executed.
 
-## Runtime handoff
+Docker's pre-existing dockerInference socket failure remains. Portable PostgreSQL
+uses56432; Redis56379. Existing unrelated PostgreSQL on55432 is preserved.
+Verified FFmpeg6.1.1; portable ffprobe4.0.2 is old, unsuitable as a production
+security claim. Python 3.13 is incompatible with pinned ASR; uv Python 3.11 minor
+link warning was worked around using its downloaded interpreter. No driver/system
+Python changes. CTranslate2/pyannote prerequisites were corrected with pinned
+setuptools75.8 and matplotlib3.10.1.
 
-All app/infrastructure processes started for verification were stopped. Ports
-3000/4000/56432/56379 were released. Existing unrelated PostgreSQL9220 on55432 was
-preserved. Ignored `.env`, `.tools/`, `data/` and browser evidence remain locally.
-Portable PostgreSQL/Redis data persist under `data/portable-*`; fixture under
-`data/fixtures/`; live smoke IDs under `data/runtime-smoke.json`.
+Trusted local application still lacks authentication, production lifecycle/GC,
+distributed worker health, S3 implementation and service deployment packaging.
+Filesystem/DB crash windows can leave orphan derivatives; no blind deletion.
+Audio normalization holds a bounded long database advisory-lock transaction.
+Provider cancellation is cooperative between stages/frames and cannot interrupt
+an active kernel/model download. OCR sampling has quarter-second resolution at4 fps,
+can miss short subtitles, uses temporary disk and is not a measured quality guarantee.
+Confidence is provider evidence, not calibrated correctness.
 
-## Exact continuation point
+## Runtime handoff and exact continuation
 
-Read this file, HANDOFF and validation evidence; inspect Git status/history. Review
-Phase01 results and choose startup prerequisites. Await explicit Phase02 approval.
-If approved, begin a Phase02 extraction design from existing MediaAsset/MediaStream
-and job/storage/media boundaries, specify source candidates with provenance,
-language decisions and provider interfaces, then implement extraction only within
-the new approved scope. Do not start those systems from this Phase01 handoff.
+Verification processes are stopped at final handoff; confirm ports/status before
+startup. Ignored data/model caches and clearly labelled synthetic smoke records
+remain for local inspection. See HANDOFF.md for exact setup, docs/PROVIDERS.md
+for isolated CPU/GPU/model settings, and docs/VALIDATION.md for executed evidence.
 
-Source of truth: `docs/MASTER_SPEC.md`, `docs/ROADMAP.md`, `docs/ARCHITECTURE.md`,
-`docs/DOMAIN_MODEL.md`, `docs/adr/`, `docs/VALIDATION.md`, `HANDOFF.md`, `AGENTS.md`.
+A future authorized Phase 03 starts from completed independent SourceExtractionRun
+and SourceSegment evidence, retaining every run/word/provider/stream reference.
+First define cross-source alignment/candidate reconciliation entities and tests;
+never mutate original media or overwrite source evidence. Phase 03 alignment,
+reconciliation/fusion and Phase 04 translation were NOT started.
 
-Do not change phase authorization, stack/worker/storage boundaries, original-media
-immutability, strict validation, secret hygiene, branch/merge constraints or future
-manual-edit priority without explicit user approval.
+Read PROJECT_STATE, HANDOFF, AGENTS, MASTER_SPEC, ARCHITECTURE, ROADMAP,
+DOMAIN_MODEL, ADR0001–0003, PROVIDERS and VALIDATION before continuation.

@@ -9,4 +9,5 @@ export function errorDiagnostics(error: unknown): Record<string, string | number
 }
 export const JobStatus = { QUEUED: 'QUEUED', PROCESSING: 'PROCESSING', COMPLETED: 'COMPLETED', FAILED: 'FAILED', CANCELLED: 'CANCELLED' } as const;
 export const AssetStatus = { IMPORTED: 'IMPORTED', INSPECTING: 'INSPECTING', READY: 'READY', FAILED: 'FAILED' } as const;
-export const JobType = { INSPECT_MEDIA: 'INSPECT_MEDIA' } as const;
+export const JobType = { INSPECT_MEDIA: 'INSPECT_MEDIA', EXTRACT_EMBEDDED_SUBTITLE: 'EXTRACT_EMBEDDED_SUBTITLE', TRANSCRIBE_AUDIO: 'TRANSCRIBE_AUDIO', OCR_BURNED_SUBTITLE: 'OCR_BURNED_SUBTITLE' } as const;
+export const ExtractionMethod = { EMBEDDED_SUBTITLE: 'EMBEDDED_SUBTITLE', ASR: 'ASR', OCR: 'OCR' } as const;

@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
-export const jobStatus = z.enum(['QUEUED', 'PROCESSING', 'COMPLETED', 'FAILED', 'CANCELLED']);
+import { idSchema, jobSchema } from './common';
+export * from './common';
 export const assetStatus = z.enum(['IMPORTED', 'INSPECTING', 'READY', 'FAILED']);
 export const streamType = z.enum(['VIDEO', 'AUDIO', 'SUBTITLE', 'OTHER']);
 export const languageId = z.string().trim().regex(/^[a-z]{2,3}(?:-[A-Za-z0-9]{2,8})*$/, 'Use a language identifier such as en, zh-CN or zh-TW').max(35);
@@ -9,12 +10,10 @@ export const createSeriesSchema = z.object({ title, description: z.string().trim
 export const updateSeriesSchema = createSeriesSchema.partial().refine(v => Object.keys(v).length > 0, 'Provide at least one field');
 export const createEpisodeSchema = z.object({ title, episodeNumber: z.number().int().positive().max(100000).nullable().optional() }).strict();
 export const updateEpisodeSchema = createEpisodeSchema.partial().refine(v => Object.keys(v).length > 0, 'Provide at least one field');
-export const idSchema = z.string().uuid();
 const dates = { createdAt: z.string().datetime(), updatedAt: z.string().datetime() };
 export const seriesSchema = z.object({ id: idSchema, title: z.string(), description: z.string().nullable(), sourceLanguage: z.string().nullable(), ...dates });
 export const episodeSchema = z.object({ id: idSchema, seriesId: idSchema, title: z.string(), episodeNumber: z.number().nullable(), ...dates });
 export const streamSchema = z.object({ id: idSchema, mediaAssetId: idSchema, streamIndex: z.number().int(), type: streamType, codec: z.string().nullable(), language: z.string().nullable(), title: z.string().nullable(), width: z.number().nullable(), height: z.number().nullable(), frameRate: z.number().nullable(), channels: z.number().nullable(), sampleRate: z.number().nullable() });
-export const jobSchema = z.object({ id: idSchema, jobType: z.literal('INSPECT_MEDIA'), status: jobStatus, progress: z.number().min(0).max(100), episodeId: idSchema.nullable(), mediaAssetId: idSchema.nullable(), errorCode: z.string().nullable(), errorMessage: z.string().nullable(), startedAt: z.string().datetime().nullable(), completedAt: z.string().datetime().nullable(), ...dates });
 export const mediaAssetSchema = z.object({ id: idSchema, episodeId: idSchema, originalFilename: z.string(), mimeType: z.string(), sizeBytes: z.string().regex(/^\d+$/), durationMs: z.number().nullable(), containerFormat: z.string().nullable(), width: z.number().nullable(), height: z.number().nullable(), status: assetStatus, ...dates, streams: z.array(streamSchema).optional() });
 export const seriesDetailSchema = seriesSchema.extend({ episodes: z.array(episodeSchema) });
 export const episodeDetailSchema = episodeSchema.extend({ mediaAssets: z.array(mediaAssetSchema), jobs: z.array(jobSchema) });
@@ -29,3 +28,4 @@ export type StreamDto = z.infer<typeof streamSchema>;
 export type JobDto = z.infer<typeof jobSchema>;
 export type SeriesDetailDto = z.infer<typeof seriesDetailSchema>;
 export type EpisodeDetailDto = z.infer<typeof episodeDetailSchema>;
+export * from './extraction';

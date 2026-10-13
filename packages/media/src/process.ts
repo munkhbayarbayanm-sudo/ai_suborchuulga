@@ -3,11 +3,14 @@ import { AppError, errorDiagnostics } from '@mongolsub/domain';
 import { createHash } from 'node:crypto';
 import { parseProbe, type Inspection } from './parser';
 export interface ProcessResult { stdout: string; stderr: string; exitCode: number | null }
-export function runProcess(executable: string, args: readonly string[], timeoutMs: number, maxOutputBytes = 4 * 1024 * 1024): Promise<ProcessResult> {
+export function runProcess(executable: string, args: readonly string[], timeoutMs: number, maxOutputBytes = 4 * 1024 * 1024, signal?:AbortSignal): Promise<ProcessResult> {
   return new Promise((resolve, reject) => {
+    if(signal?.aborted) { reject(new AppError('CANCELLED','Media processing was cancelled.')); return; }
     const child = spawn(executable, args, { shell: false, windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'] });
     const stdout: Buffer[] = []; const stderr: Buffer[] = [];
     let total = 0; let failure: AppError | undefined;
+    const abort=()=>{failure=new AppError('CANCELLED','Media processing was cancelled.');child.kill('SIGKILL');};
+    signal?.addEventListener('abort',abort,{once:true});
     const timeout = setTimeout(() => { failure = new AppError('MEDIA_TIMEOUT', 'Media inspection timed out. Try a smaller or repaired file.', 400, { timeoutMs }); child.kill('SIGKILL'); }, timeoutMs);
     function collect(target: Buffer[], chunk: Buffer) {
       total += chunk.length;
@@ -16,8 +19,8 @@ export function runProcess(executable: string, args: readonly string[], timeoutM
     }
     child.stdout.on('data', (chunk: Buffer) => collect(stdout, chunk));
     child.stderr.on('data', (chunk: Buffer) => collect(stderr, chunk));
-    child.on('error', error => { clearTimeout(timeout); reject(new AppError('MEDIA_TOOL_MISSING', 'Media tool could not start. Check FFPROBE_PATH / FFMPEG_PATH and installation.', 400, errorDiagnostics(error))); });
-    child.on('close', exitCode => { clearTimeout(timeout); if (failure) reject(failure); else resolve({ stdout: Buffer.concat(stdout).toString('utf8'), stderr: Buffer.concat(stderr).toString('utf8'), exitCode }); });
+    child.on('error', error => { clearTimeout(timeout); signal?.removeEventListener('abort',abort); reject(new AppError('MEDIA_TOOL_MISSING', 'Media tool could not start. Check FFPROBE_PATH / FFMPEG_PATH and installation.', 400, errorDiagnostics(error))); });
+    child.on('close', exitCode => { clearTimeout(timeout); signal?.removeEventListener('abort',abort); if (failure) reject(failure); else resolve({ stdout: Buffer.concat(stdout).toString('utf8'), stderr: Buffer.concat(stderr).toString('utf8'), exitCode }); });
   });
 }
 export async function toolAvailable(executable: string): Promise<boolean> {

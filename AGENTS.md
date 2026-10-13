@@ -5,7 +5,8 @@ history before edits. Treat repository documents as continuity authority; do not
 depend on chat history. Read `docs/MASTER_SPEC.md`, `docs/ARCHITECTURE.md`,
 `docs/ROADMAP.md` and relevant ADRs before changing architecture.
 
-Only Phase 01 has been authorized. Do not begin another phase without explicit
+Phases 01 and 02 have been authorized. Stop after Phase 02; do not begin Phase 03,
+translation or another phase without explicit
 user authorization. Do not silently replace Nest, Next, Prisma/PostgreSQL, BullMQ,
 the storage boundary, or the separate-worker model. Original media is immutable.
 Never put filesystem paths into public contracts or media blobs into PostgreSQL.

@@ -7,6 +7,7 @@ import { errorText, request, uploadMedia } from '../lib/api';
 import { bytesLabel, dateLabel, durationLabel } from '../lib/format';
 import { useResource } from '../lib/use-resource';
 import { EpisodeForm } from './forms';
+import { SourceExtractionPanel } from './source-extraction';
 import { Shell, PageHeading, ErrorNotice, LoadingRows, Icon, StatusBadge, ReservedPanel } from './ui';
 
 function isActive(job: JobDto) { return job.status === 'QUEUED' || job.status === 'PROCESSING'; }
@@ -93,6 +94,7 @@ export function EpisodeWorkspace({ id }: { id: string }) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [revision, setRevision] = useState(0);
   const selected = data?.mediaAssets.find(asset => asset.id === selectedId) || data?.mediaAssets[0];
+  const inspectionJobs = data?.jobs.filter(job => job.jobType === 'INSPECT_MEDIA') ?? [];
   const handleTerminal = useCallback(() => { refresh(); setRevision(value => value + 1); }, [refresh]);
   return <Shell context="Episode"><div className="page-content episode-content"><nav className="breadcrumbs" aria-label="Breadcrumb"><Link href="/">Library</Link><span aria-hidden="true">/</span>{data && <><Link href={`/series/${data.seriesId}`}>Series</Link><span aria-hidden="true">/</span></>}<span>Episode</span></nav>
     {error ? <ErrorNotice message={error} retry={refresh} /> : loading && !data ? <LoadingRows /> : data && <><PageHeading title={data.title} description={data.episodeNumber === null ? 'Episode workspace' : `Episode ${String(data.episodeNumber).padStart(2, '0')}`}><button className="button secondary" onClick={() => { setEditing(true); setSaved(false); }} disabled={editing}>Edit episode</button><Link className="button secondary" href={`/series/${data.seriesId}`}>All episodes</Link></PageHeading>
@@ -102,8 +104,8 @@ export function EpisodeWorkspace({ id }: { id: string }) {
       <ReservedPanel title="Video preview" detail="Video playback will be added with the editor." />
       <section className="assets-panel"><div className="panel-heading"><h2>Imported media <span className="count">{data.mediaAssets.length}</span></h2></div>{data.mediaAssets.length ? <div className="asset-list">{data.mediaAssets.map(asset => <button key={asset.id} className={`asset-row ${asset.id === selected?.id ? 'selected' : ''}`} aria-pressed={asset.id === selected?.id} onClick={() => setSelectedId(asset.id)}><Icon name="film" /><span><strong>{asset.originalFilename}</strong><small>{bytesLabel(asset.sizeBytes)} · {dateLabel(asset.createdAt)}</small></span><StatusBadge status={asset.status} /></button>)}</div> : <p className="panel-empty">No source video yet. Import a file above to inspect its metadata.</p>}</section>
     </div><aside className="inspector-column" aria-label="Media and job inspector">{selected ? <MediaInspector key={selected.id} assetId={selected.id} revision={revision} /> : <section className="inspector-panel"><div className="panel-heading"><h2>Media information</h2></div><p className="panel-empty">Duration, resolution, and source tracks will appear here after import.</p></section>}
-      <section className="jobs-panel"><div className="panel-heading"><h2>Inspection jobs <span className="count">{data.jobs.length}</span></h2><span className="live-label">{data.jobs.some(isActive) ? 'Live' : 'History'}</span></div>{data.jobs.length ? data.jobs.map(job => <JobMonitor key={job.id} initial={job} onTerminal={handleTerminal} />) : <p className="panel-empty">Importing a video creates a background inspection job.</p>}</section>
-    </aside><div className="editor-reserve"><ReservedPanel title="Timeline & subtitle editor" detail="Editing tools and subtitle tracks are reserved for a later phase." /><div className="reserved-toolbar" aria-label="Unavailable editor actions"><button className="button secondary" disabled><Icon name="lock" size={14} />Subtitle editing</button><button className="button secondary" disabled><Icon name="lock" size={14} />Video editing</button><button className="button secondary" disabled><Icon name="lock" size={14} />Export</button></div></div></div>
+      <section className="jobs-panel"><div className="panel-heading"><h2>Inspection jobs <span className="count">{inspectionJobs.length}</span></h2><span className="live-label">{inspectionJobs.some(isActive) ? 'Live' : 'History'}</span></div>{inspectionJobs.length ? inspectionJobs.map(job => <JobMonitor key={job.id} initial={job} onTerminal={handleTerminal} />) : <p className="panel-empty">Importing a video creates a background inspection job.</p>}</section>
+    </aside>{selected && <SourceExtractionPanel episodeId={id} asset={selected} />}<div className="editor-reserve"><ReservedPanel title="Timeline & subtitle editor" detail="Editing tools and subtitle tracks are reserved for a later phase." /><div className="reserved-toolbar" aria-label="Unavailable editor actions"><button className="button secondary" disabled><Icon name="lock" size={14} />Subtitle editing</button><button className="button secondary" disabled><Icon name="lock" size={14} />Video editing</button><button className="button secondary" disabled><Icon name="lock" size={14} />Export</button></div></div></div>
     </>}
   </div></Shell>;
 }

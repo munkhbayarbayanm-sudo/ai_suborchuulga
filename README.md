@@ -1,7 +1,8 @@
 # MongolSub Studio
 
-Phase 01: a local studio for organizing Series/Episodes, importing original video,
-and inspecting container/stream metadata asynchronously. AI and editing are deferred.
+Phase 02: a local studio for organizing Series/Episodes, importing original video,
+and extracting independent embedded subtitle, WhisperX ASR and PaddleOCR evidence.
+Translation, cross-source fusion and editing remain deferred.
 
 ## Prerequisites
 
@@ -93,4 +94,23 @@ Video preview, subtitle/timeline editing and export are clearly disabled future 
 
 Read [PROJECT_STATE.md](PROJECT_STATE.md), [HANDOFF.md](HANDOFF.md),
 [architecture](docs/ARCHITECTURE.md) and [validation evidence](docs/VALIDATION.md)
-before continuing. Phase 02 requires new explicit authorization.
+before continuing. Phase 03 requires new explicit authorization.
+
+## Source extraction
+
+After inspection select subtitle/audio streams in Episode Detail. Extract embedded
+text, transcribe Auto/English/Chinese audio, or OCR English/Simplified/Traditional
+burned text. Results remain separate, with paginated segments and read-only provenance.
+Default identical requests reuse a run; Run again creates an intentional revision.
+Cancellation is cooperative; source evidence is saved atomically.
+
+The core app works without Python. For actual optional providers follow
+[PROVIDERS.md](docs/PROVIDERS.md), install the locked uv Python3.11 extras, set the
+same private token in ignored .env, then run `pnpm dev:providers` in another terminal.
+CPU is default; no NVIDIA GPU or HF token is needed for basic ASR. Real model weights
+may download on first extraction. Readiness distinguishes dependency/model absence.
+
+`pnpm fixture:sources` generates legal multilingual embedded tracks with tone audio.
+`pnpm test:smoke:sources` explicitly requires real providers plus prepared synthetic
+speech/images and verifies compiled worker persistence. See VALIDATION for actual
+executed evidence and limits; tone fixtures/fake CI providers are not ASR validation.

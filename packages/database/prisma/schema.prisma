@@ -19,6 +19,17 @@ enum StreamType {
 }
 enum JobType {
   INSPECT_MEDIA
+  EXTRACT_EMBEDDED_SUBTITLE
+  TRANSCRIBE_AUDIO
+  OCR_BURNED_SUBTITLE
+}
+enum ExtractionMethod {
+  EMBEDDED_SUBTITLE
+  ASR
+  OCR
+}
+enum DerivativeType {
+  AUDIO_MONO_16K
 }
 enum JobStatus {
   QUEUED
@@ -46,6 +57,7 @@ model Episode {
   updatedAt DateTime @updatedAt
   mediaAssets MediaAsset[]
   jobs ProcessingJob[]
+  extractions SourceExtractionRun[]
   @@index([seriesId])
 }
 model MediaAsset {
@@ -65,6 +77,9 @@ model MediaAsset {
   updatedAt DateTime @updatedAt
   streams MediaStream[]
   jobs ProcessingJob[]
+  extractions SourceExtractionRun[]
+  derivatives MediaDerivative[]
+  @@unique([id, episodeId])
   @@index([episodeId])
 }
 model MediaStream {
@@ -81,6 +96,8 @@ model MediaStream {
   frameRate Float?
   channels Int?
   sampleRate Int?
+  extractions SourceExtractionRun[]
+  @@unique([id, mediaAssetId])
   @@unique([mediaAssetId, streamIndex])
 }
 model ProcessingJob {
@@ -98,7 +115,71 @@ model ProcessingJob {
   startedAt DateTime?
   completedAt DateTime?
   updatedAt DateTime @updatedAt
+  extractionRun SourceExtractionRun?
   @@index([status, createdAt])
   @@index([episodeId])
   @@index([mediaAssetId])
+}
+model SourceExtractionRun {
+  id String @id @default(uuid()) @db.Uuid
+  episodeId String @db.Uuid
+  episode Episode @relation(fields: [episodeId], references: [id], onDelete: Cascade)
+  mediaAssetId String @db.Uuid
+  mediaAsset MediaAsset @relation(fields: [mediaAssetId, episodeId], references: [id, episodeId], onDelete: Cascade)
+  streamId String? @db.Uuid
+  stream MediaStream? @relation(fields: [streamId, mediaAssetId], references: [id, mediaAssetId], onDelete: Restrict)
+  streamIndex Int?
+  method ExtractionMethod
+  provider String @db.VarChar(80)
+  providerVersion String? @db.VarChar(120)
+  modelVersion String? @db.VarChar(200)
+  languageRequested String? @db.VarChar(35)
+  languageDetected String? @db.VarChar(35)
+  status JobStatus @default(QUEUED)
+  settings Json
+  settingsHash String @db.VarChar(64)
+  revision String @default("default") @db.VarChar(36)
+  identityHash String @unique @db.VarChar(64)
+  processingJobId String @unique @db.Uuid
+  processingJob ProcessingJob @relation(fields: [processingJobId], references: [id], onDelete: Cascade)
+  stage String?
+  device String? @db.VarChar(8)
+  processingDurationMs Int?
+  startedAt DateTime?
+  completedAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  segments SourceSegment[]
+  @@index([episodeId, createdAt])
+  @@index([mediaAssetId, method])
+}
+model SourceSegment {
+  id String @id @default(uuid()) @db.Uuid
+  extractionRunId String @db.Uuid
+  extractionRun SourceExtractionRun @relation(fields: [extractionRunId], references: [id], onDelete: Cascade)
+  startMs Int
+  endMs Int
+  text String
+  language String? @db.VarChar(35)
+  confidence Float?
+  speaker String? @db.VarChar(100)
+  sequence Int
+  words Json @default("[]")
+  providerMetadata Json
+  createdAt DateTime @default(now())
+  @@unique([extractionRunId, sequence])
+  @@index([extractionRunId, startMs, sequence])
+}
+model MediaDerivative {
+  id String @id @default(uuid()) @db.Uuid
+  mediaAssetId String @db.Uuid
+  mediaAsset MediaAsset @relation(fields: [mediaAssetId], references: [id], onDelete: Cascade)
+  type DerivativeType
+  streamIndex Int
+  storageKey String @unique
+  settings Json
+  settingsHash String @db.VarChar(64)
+  sizeBytes BigInt
+  createdAt DateTime @default(now())
+  @@unique([mediaAssetId, type, streamIndex, settingsHash])
 }

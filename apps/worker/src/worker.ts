@@ -5,7 +5,9 @@ import { dispatchPending, inspectionPayload, inspectionQueue, INSPECTION_QUEUE, 
 import { LocalStorage } from '@mongolsub/storage';
 import { processInspection, failInspection } from './inspection';
 import { settleWithin } from './shutdown';
-export async function createInspectionWorker(config: Config) {
+import { HttpProviders, type ProviderSet } from '@mongolsub/extraction';
+import { processSourceExtraction, failSourceExtraction } from './extraction';
+export async function createInspectionWorker(config: Config, providers:ProviderSet = new HttpProviders(config)) {
   const db = new PrismaClient({ datasourceUrl: config.DATABASE_URL });
   await db.$connect();
   const redis = redisConnection(config.REDIS_URL);
@@ -13,12 +15,14 @@ export async function createInspectionWorker(config: Config) {
   const storage = new LocalStorage(config.STORAGE_ROOT);
   const worker = new Worker(INSPECTION_QUEUE, async job => {
     const { jobId } = inspectionPayload.parse(job.data);
-    await processInspection(jobId, db, storage, config);
+    const row=await db.processingJob.findUniqueOrThrow({where:{id:jobId}});
+    if(row.jobType==='INSPECT_MEDIA')await processInspection(jobId, db, storage, config);
+    else await processSourceExtraction(jobId,db,storage,config,providers);
   }, { connection: redis, concurrency: config.WORKER_CONCURRENCY, maxStalledCount: 1 });
   worker.on('error', () => console.error(JSON.stringify({ event: 'worker_transport_error' })));
   worker.on('failed', (job, _error) => {
     const parsed = inspectionPayload.safeParse(job?.data);
-    if (parsed.success) void failInspection(parsed.data.jobId, db, 'WORKER_FAILED', 'Inspection stopped unexpectedly. Check worker readiness.').catch(() => console.error(JSON.stringify({ event: 'failure_persistence_failed', jobId: parsed.data.jobId })));
+    if (parsed.success) void (async()=>{const row=await db.processingJob.findUnique({where:{id:parsed.data.jobId}});if(row?.jobType==='INSPECT_MEDIA')await failInspection(row.id,db,'WORKER_FAILED','Inspection stopped unexpectedly. Check worker readiness.');else if(row)await failSourceExtraction(row.id,db,'PROCESS_FAILED','Source extraction stopped unexpectedly. Check worker readiness.');})().catch(() => console.error(JSON.stringify({ event: 'failure_persistence_failed', jobId: parsed.data.jobId })));
   });
   await worker.waitUntilReady();
   let closing = false;

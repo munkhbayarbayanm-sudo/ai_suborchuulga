@@ -1,4 +1,10 @@
-# Phase 01 validation — 2026-10-13 (Asia/Ulaanbaatar)
+# Validation evidence
+
+Current Phase02 evidence: [PHASE_02_VALIDATION.md](PHASE_02_VALIDATION.md).
+It records final checks, actual CPU providers versus injected contract fixtures,
+compiled runtime, browser results, review fixes and unverified environment gates.
+
+# Historical Phase 01 validation — 2026-10-13 (Asia/Ulaanbaatar)
 
 ## Executed automated checks
 

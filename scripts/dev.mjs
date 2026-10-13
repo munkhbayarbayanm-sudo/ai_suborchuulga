@@ -3,7 +3,7 @@ import { resolve } from 'node:path';
 // Turbo runs each app in its own working directory. Share one absolute storage root.
 const child = spawn(process.execPath, [resolve('node_modules/turbo/bin/turbo'), 'run', 'dev'], {
   stdio: ['pipe', 'inherit', 'inherit'], windowsHide: true,
-  env: { ...process.env, STORAGE_ROOT: resolve(process.env.STORAGE_ROOT || './data/media') }
+  env: { ...process.env, STORAGE_ROOT: resolve(process.env.STORAGE_ROOT || './data/media'), MEDIA_WORK_ROOT: resolve(process.env.MEDIA_WORK_ROOT || './data/work') }
 });
 child.once('error', () => { console.error('Development runner could not start. Run pnpm install.'); process.exitCode = 1; });
 child.once('exit', code => { if (process.stdin.isTTY) process.stdin.setRawMode(false); process.stdin.pause(); process.exitCode = stopping ? 0 : code ?? 0; });

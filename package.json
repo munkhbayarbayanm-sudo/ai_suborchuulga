@@ -7,6 +7,7 @@
   "scripts": {
     "dev": "dotenv -e .env -- node scripts/dev.mjs",
     "dev:local-infra": "dotenv -e .env -- node scripts/local-infra.mjs",
+    "dev:providers": "dotenv -e .env -- node scripts/providers.mjs",
     "build": "dotenv -e .env -- turbo run build",
     "typecheck": "turbo run typecheck && tsc --noEmit -p tsconfig.tooling.json",
     "lint": "eslint .",
@@ -15,7 +16,9 @@
     "test:smoke": "dotenv -e .env -- tsx scripts/smoke.ts",
     "db:generate": "pnpm --filter @mongolsub/database generate",
     "db:migrate": "dotenv -e .env -- pnpm --filter @mongolsub/database migrate",
-    "fixture": "dotenv -e .env -- tsx scripts/create-fixture.ts"
+    "fixture": "dotenv -e .env -- tsx scripts/create-fixture.ts",
+    "fixture:sources": "dotenv -e .env -- tsx scripts/create-source-fixture.ts",
+    "test:smoke:sources": "dotenv -e .env -- tsx scripts/source-smoke.ts"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.0",

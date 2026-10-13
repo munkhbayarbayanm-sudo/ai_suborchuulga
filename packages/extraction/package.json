@@ -1,0 +1,1 @@
+{ "name": "@mongolsub/extraction", "version": "0.2.0", "private": true, "type": "module", "exports": "./src/index.ts", "scripts": { "typecheck": "tsc --noEmit" }, "dependencies": { "@mongolsub/config": "workspace:*", "@mongolsub/contracts": "workspace:*", "@mongolsub/domain": "workspace:*", "@mongolsub/media": "workspace:*", "zod": "^3.25.0" } }

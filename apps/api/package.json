@@ -26,7 +26,8 @@
     "@mongolsub/storage": "workspace:*",
     "@prisma/client": "6.19.0",
     "bullmq": "^5.63.0",
-    "ioredis": "^5.8.0"
+    "ioredis": "^5.8.0",
+    "@mongolsub/extraction": "workspace:*"
   },
   "devDependencies": {
     "@types/busboy": "^1.5.4",

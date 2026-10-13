@@ -1,91 +1,107 @@
-# Phase 01 handoff
+# Phase 02 handoff
 
-Read PROJECT_STATE first, then AGENTS and architecture. Work is on
-`codex/phase-01-foundation`; implementation commit
-`972641bc773628e879304de9922abc76784bfb4d`. Foundation commit `082f18f`.
-Final continuity docs are a separate commit; inspect `git log -3 --oneline`.
-No main merge, remote push, deployment or Phase02 work occurred.
+Read PROJECT_STATE.md first. Active branch is `codex/phase-02-source-extraction`,
+based directly on approved Phase 01 `acb3eaad4e2febb3eb747e287775eebfafc08ee8`.
+Inspect `git status` and `git log -3` for the implementation and continuity commits.
+No merge, push, deployment, Phase 03 or translation is authorized/performed.
 
-## Starting this checkout
+## Start this Windows checkout
 
-On this Windows machine Docker has a host startup fault. Portable tools are already
-installed under ignored `.tools/`, and `.env` points at them. In one terminal:
+Private .env and ignored portable tools exist locally. In separate terminals:
 
 ```powershell
 pnpm dev:local-infra
-```
-
-In another:
-
-```powershell
+# Wait for PostgreSQL56432 and Redis56379; preserve unrelated55432.
 pnpm db:generate
 pnpm db:migrate
 pnpm dev
 ```
 
-Open http://127.0.0.1:3000. Stop apps with Ctrl+C; Windows runner owns and terminates
-only its spawned tree. Stop portable infrastructure with Ctrl+C; data persists.
-At handoff all these processes are stopped and their ports are free.
+Open http://127.0.0.1:3000. Core app boots without Python; embedded extraction
+remains available. Stop apps and portable infrastructure with Ctrl+C. Root dev
+runner resolves shared absolute storage/work roots before Turbo changes directories.
+Final verification processes are stopped; data persists.
 
-For a fresh checkout use README prerequisites/setup; install portable tools with
-`scripts/setup-local-windows.ps1` if Docker is unavailable. The setup script's pinned
-dependency install/download operations were executed equivalently during setup;
-the complete PowerShell wrapper itself was not separately rerun. The checked-in
-portable infrastructure runner was directly executed successfully. Prefer current
-FFmpeg/FFprobe for actual media, not the old static probe used in synthetic tests.
+For actual optional inference install uv/Python 3.11, then:
 
-Once Docker Desktop works, preferred setup is `docker compose up -d --wait`, then
-generate/migrate/dev. Never run both infrastructure setups on the same ports. An
-existing PostgreSQL on55432 belongs to other work; MongolSub uses56432 and56379.
+```powershell
+uv sync --project services/providers --locked --extra asr --extra ocr
+# Set private EXTRACTION_PROVIDER_TOKEN identically in ignored .env.
+pnpm dev:providers
+```
 
-## API contracts
+See docs/PROVIDERS.md before setup. The bootstrap loads .env, resolves absolute
+storage/work/model roots and launches the locked installed environment with
+--no-sync. It binds authenticated loopback8765. CPU is default. Model downloads
+occur only when actual extraction is requested. Existing ASR/alignment caches
+are under ignored data/provider-smoke/models and Paddle cache under .paddlex.
+No HF token is required for basic ASR or alignment; gated diarization is optional.
 
-| Method | Path | Behavior |
-|---|---|---|
-| GET | `/health` | separate DB/Redis/tools/worker readiness |
-| GET / POST | `/series` | list / create |
-| GET / PATCH | `/series/:id` | detail with Episodes / update |
-| POST | `/series/:id/episodes` | create Episode |
-| GET / PATCH | `/episodes/:id` | detail with assets/jobs / update |
-| POST | `/episodes/:id/media` | one multipart `file`; persisted asset + QUEUED job |
-| GET | `/media/:id` | asset + validated streams/jobs |
-| GET | `/jobs/:id` | persisted status/progress/error/timestamps |
+Fresh checkouts should follow README/PROVIDERS; current FFmpeg/ffprobe recommended.
+Docker Compose remains preferred but this host's pre-existing Docker engine failure
+was not repaired or bypassed by changing Docker settings.
 
-Shared Zod DTOs are in packages/contracts. Paths are UUID validated. Byte size is
-a decimal string; storageKey stays private. Public errors are `{code,message}`.
-Upload default limit2GiB, configurable. MIME/extension validation precedes actual
-FFprobe content inspection. Abort, malformed forms and storage failure must preserve
-the process and clean up; real HTTP regression tests cover these cases.
+## Manual workflow
 
-## Inspection details
+1. Create/open a Series and Episode; import media, wait for inspection READY.
+2. Select the media. Inspect subtitle/audio index, title, language, codec/channels.
+3. Select supported embedded text tracks, extract. PGS/VobSub codecs are unavailable.
+4. Select an audio stream, Auto/English/Chinese hint and optional alignment/diarization.
+5. OCR: English/Simplified/Traditional hint, bottom/full frame,4 fps default,
+   lower40% default, confidence threshold. This is an initial sampled OCR baseline.
+6. Observe queued/processing/completed/failed/cancelled per independent run.
+7. Select a run and a segment; inspect provider/version/model/media/stream/language,
+   confidence, words, speaker and scoped metadata. Use pagination for long results.
+8. Ordinary repeated requests reuse their run; Run again creates a UUID revision.
+   Repeated transport attempts for that UUID reuse the same revision.
+9. Stop providers to verify unavailable ASR/OCR and continued embedded/core readiness.
 
-Storage saves to temporary UUID files then renames. DB commits MediaAsset+ProcessingJob
-together. Worker dispatcher polls database every second and sends UUID-keyed jobs to
-BullMQ. QUEUED → PROCESSING → COMPLETED/FAILED; terminal metadata/streams/status
-share a transaction. One attempt avoids fatal media loops; one stalled recovery.
-Worker reconciles retained failed queue entries if earlier DB failure prevented
-terminal persistence. Missing tools, invalid media, timeout/output overflow and
-unexpected worker failures are useful final errors. Safe diagnostics exclude raw
-paths, secrets and media content.
+`pnpm fixture:sources` creates legal3 second media: video, two tone audio tracks,
+English SRT, Simplified ASS and Traditional SRT. Tone audio is NOT speech ASR evidence.
+`pnpm test:smoke:sources` is explicit REAL-provider smoke requiring synthetic
+SAPI WAV and3drawn image assets prepared under data/provider-smoke. It generates
+legal7 second burned-subtitle videos, imports them and persists actual provider runs.
+Its IDs/results stay in ignored data/phase02-runtime-smoke.json. Do not commit media.
 
-## Validation and records
+## Validation / recovery boundaries
 
-See docs/VALIDATION for commands, counts, coverage, tool versions and gates. Stop
-other MongolSub workers before integration; its isolated temporary media root must
-be processed by its own worker. Never flush shared Redis or truncate databases.
+Stop all other MongolSub workers before integration tests: the suite owns a
+temporary storage root while using real PostgreSQL/Redis. Never flush shared Redis
+or truncate databases. It cleans only test Series and owned temporary files.
 
-`pnpm fixture` generates the ignored synthetic MKV. With apps running,
-`pnpm test:smoke` exercises live success/failure and leaves a labelled verification
-Series/Episode. The latest IDs are in ignored `data/runtime-smoke.json`. Several
-synthetic verification records may remain from repeated development/production runs.
-They are real persisted test records, not hard-coded UI demos. Browser screenshot
-evidence under `apps/web/test-results/` was taken against the earlier isolated test
-cluster and remains accurate evidence of that executed flow.
+```powershell
+pnpm lint
+pnpm typecheck
+pnpm test
+pnpm test:integration
+pnpm build
+pnpm db:migrate
+uv run --directory services/providers --locked --no-sync pytest -q
+uv run --directory services/providers --locked --no-sync ruff check .
+uv run --directory services/providers --locked --no-sync ruff format --check .
+```
 
-## Next authorized work
+For compiled runtime, start .env-loaded `node apps/api/dist/main.js` and
+`node apps/worker/dist/main.js` from the root; run
+`pnpm --filter @mongolsub/web exec next start --hostname 127.0.0.1`.
+Configured roots must be the same physical directories as the provider.
+See docs/VALIDATION.md for real versus injected-provider results.
 
-No new phase is authorized. Phase02 continuation, after explicit approval: specify
-language/source extraction outputs and candidate provenance from existing asset and
-stream metadata; design embedded subtitle/audio extraction and ASR/OCR provider
-contracts with corresponding job/entity extensions. Do not implement translation,
-fusion or editing ahead of their roadmap phases. Architectural changes need approval.
+Failure codes distinguish dependency/model absence, OOM, timeout, provider drift,
+invalid output/media and cancellation. No expensive automatic retry is used;
+intentional reruns are explicit. Transient inference failures do not permanently
+disable readiness. Dependency/model startup failures require configuration/restart.
+Cancelled evidence cannot persist after the database cancellation lock wins.
+Temporary media is removed after normal completion/failure/cancellation. Crashes
+still need a future carefully scoped reconciliation policy.
+
+## Exact future continuation point
+
+Await explicit Phase 03 authorization. Then define cross-source temporal alignment,
+candidate reconciliation and consensus schema/service/contracts against the existing
+independent runs/segments/word timing; preserve all immutable source provenance.
+Do not claim Chinese speech/GPU/diarization/long-media validation from existing tests.
+Do not introduce translation/editor/render features without their separate approvals.
+
+Required reads: PROJECT_STATE, HANDOFF, AGENTS, docs/MASTER_SPEC,
+ARCHITECTURE, ROADMAP, DOMAIN_MODEL, PROVIDERS, VALIDATION and docs/adr/*.

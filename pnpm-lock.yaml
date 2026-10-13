@@ -59,6 +59,9 @@ importers:
       '@mongolsub/domain':
         specifier: workspace:*
         version: link:../../packages/domain
+      '@mongolsub/extraction':
+        specifier: workspace:*
+        version: link:../../packages/extraction
       '@mongolsub/media':
         specifier: workspace:*
         version: link:../../packages/media
@@ -139,12 +142,18 @@ importers:
       '@mongolsub/config':
         specifier: workspace:*
         version: link:../../packages/config
+      '@mongolsub/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
       '@mongolsub/database':
         specifier: workspace:*
         version: link:../../packages/database
       '@mongolsub/domain':
         specifier: workspace:*
         version: link:../../packages/domain
+      '@mongolsub/extraction':
+        specifier: workspace:*
+        version: link:../../packages/extraction
       '@mongolsub/media':
         specifier: workspace:*
         version: link:../../packages/media
@@ -187,6 +196,24 @@ importers:
         version: 6.19.0(typescript@5.9.3)
 
   packages/domain: {}
+
+  packages/extraction:
+    dependencies:
+      '@mongolsub/config':
+        specifier: workspace:*
+        version: link:../config
+      '@mongolsub/contracts':
+        specifier: workspace:*
+        version: link:../contracts
+      '@mongolsub/domain':
+        specifier: workspace:*
+        version: link:../domain
+      '@mongolsub/media':
+        specifier: workspace:*
+        version: link:../media
+      zod:
+        specifier: ^3.25.0
+        version: 3.25.76
 
   packages/media:
     dependencies:

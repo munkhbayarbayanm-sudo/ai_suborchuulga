@@ -37,10 +37,10 @@ export function Shell({ children, context = 'Library' }: { children: ReactNode; 
     <aside className="rail" aria-label="Studio navigation">
       <Link className="brand" href="/" aria-label="MongolSub Studio library"><span className="brand-mark">M<span>·</span></span><span className="brand-name">MongolSub<small>Studio</small></span></Link>
       <nav><Link href="/" className="nav-item current"><Icon name="library" />Series library</Link></nav>
-      <div className="rail-note"><span className="phase-label">Foundation</span><p>Import media.<br />Inspect source tracks.</p></div>
+      <div className="rail-note"><span className="phase-label">Source extraction</span><p>Import media.<br />Inspect source evidence.</p></div>
       <ServiceStatus />
     </aside>
-    <div className="workspace-shell"><header className="topbar"><span className="context-label">{context}</span><span className="topbar-note">Media import workspace</span></header><main id="workspace" tabIndex={-1}>{children}</main></div>
+    <div className="workspace-shell"><header className="topbar"><span className="context-label">{context}</span><span className="topbar-note">Source extraction workspace</span></header><main id="workspace" tabIndex={-1}>{children}</main></div>
   </div>;
 }
 
@@ -58,7 +58,7 @@ export function EmptyState({ title, description, children }: { title: string; de
   return <div className="empty-state"><Icon name="film" size={28} /><h2>{title}</h2><p className="muted">{description}</p>{children}</div>;
 }
 
-const statusLabels: Record<string, string> = { QUEUED: 'Queued', PROCESSING: 'Inspecting', COMPLETED: 'Completed', FAILED: 'Failed', CANCELLED: 'Cancelled', IMPORTED: 'Imported', INSPECTING: 'Inspecting', READY: 'Ready' };
+const statusLabels: Record<string, string> = { QUEUED: 'Queued', PROCESSING: 'Processing', COMPLETED: 'Completed', FAILED: 'Failed', CANCELLED: 'Cancelled', IMPORTED: 'Imported', INSPECTING: 'Inspecting', READY: 'Ready' };
 export function StatusBadge({ status }: { status: string }) {
   return <span className={`status-badge ${status.toLowerCase()}`}><span className="status-dot" />{statusLabels[status] || status}</span>;
 }
