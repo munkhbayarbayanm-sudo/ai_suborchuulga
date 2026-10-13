@@ -4,7 +4,8 @@ Current Phase03 evidence: [PHASE_03_VALIDATION.md](PHASE_03_VALIDATION.md).
 Phase02 historical evidence: [PHASE_02_VALIDATION.md](PHASE_02_VALIDATION.md).
 These distinguish deterministic fusion and injected provider fixtures from historical
 actual CPU inference, compiled runtime, browser checks and unverified environment gates.
-Phase03 implementation commit is pending final commit; inspect final git history.
+Phase03 implementation commit: `b1a3b90162c6b77a6e1aee37f85c2f8c1c586f3a`.
+Current HEAD is the final continuity commit; inspect `git log -2`.
 
 # Historical Phase 01 validation — 2026-10-13 (Asia/Ulaanbaatar)
 

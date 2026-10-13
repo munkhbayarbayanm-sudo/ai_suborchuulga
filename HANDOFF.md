@@ -3,7 +3,7 @@
 Read PROJECT_STATE.md first. Branch codex/phase-03-transcript-fusion was created
 directly from approved Phase 02 bc416581c97ae0648f4ce3f21bf902c973034670.
 Phase 02 implementation was 28a4f0dbad76067be2f3cf72ade8e6394186ca4a.
-Phase 03 implementation commit: pending final commit; inspect git log -2 for
+Phase 03 implementation commit: `b1a3b90162c6b77a6e1aee37f85c2f8c1c586f3a`; inspect git log -2 for
 implementation and continuity HEAD. No merge, push or external deployment performed.
 Phase 03 is the stopping point. Phase 04 requires new explicit user authorization.
 

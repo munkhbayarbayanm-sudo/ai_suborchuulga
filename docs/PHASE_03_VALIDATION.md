@@ -3,7 +3,8 @@
 Branch: `codex/phase-03-transcript-fusion`. Created directly from approved Phase02
 `bc416581c97ae0648f4ce3f21bf902c973034670`; approved implementation
 `28a4f0dbad76067be2f3cf72ade8e6394186ca4a` is its ancestor. Initial worktree was clean.
-Phase03 implementation commit: pending final commit; see final Git history.
+Phase03 implementation commit: `b1a3b90162c6b77a6e1aee37f85c2f8c1c586f3a`.
+Current HEAD is the final continuity commit; inspect `git log -2`.
 No merge/push, external deployment, Phase04 translation or professional editor work.
 
 ## Executed checks
@@ -94,8 +95,8 @@ new rerun completed inactive, earlier correction/active choice survived reload. 
 OCR canonical evidence was separately inspected while both AI providers were unavailable.
 After the polling fix, rebuilt production UI also observed a new queued run complete.
 
-Screenshots are ignored local artifacts: data/phase03-fusion-inspector.jpg and
-data/phase03-fusion-mobile.jpg. Desktop1440 and320/375/768px viewports had equal
+Screenshots are ignored local artifacts: data/phase03-fusion-inspector.jpg,
+data/phase03-fusion-evidence.jpg and data/phase03-fusion-mobile.jpg. Desktop1440 and320/375/768px viewports had equal
 document client/scroll widths (1425/305/360/753 due scrollbar);375px controls were
 inspected with no element extending past the viewport. Console warnings/errors: none.
 
