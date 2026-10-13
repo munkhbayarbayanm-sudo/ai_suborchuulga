@@ -1,0 +1,23 @@
+{
+  "name": "@mongolsub/worker",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/main.ts",
+    "build": "tsup",
+    "start": "node dist/main.js",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@mongolsub/config": "workspace:*",
+    "@mongolsub/database": "workspace:*",
+    "@mongolsub/domain": "workspace:*",
+    "@mongolsub/media": "workspace:*",
+    "@mongolsub/queue": "workspace:*",
+    "@mongolsub/storage": "workspace:*",
+    "@prisma/client": "6.19.0",
+    "bullmq": "^5.63.0",
+    "ioredis": "^5.8.0"
+  }
+}

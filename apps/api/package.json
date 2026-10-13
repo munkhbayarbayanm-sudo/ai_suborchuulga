@@ -1,0 +1,35 @@
+{
+  "name": "@mongolsub/api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/main.ts",
+    "build": "tsup",
+    "start": "node dist/main.js",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@nestjs/common": "^11.1.0",
+    "@nestjs/core": "^11.1.0",
+    "@nestjs/platform-express": "^11.1.0",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.2",
+    "busboy": "^1.6.0",
+    "zod": "^3.25.0",
+    "@mongolsub/config": "workspace:*",
+    "@mongolsub/contracts": "workspace:*",
+    "@mongolsub/database": "workspace:*",
+    "@mongolsub/domain": "workspace:*",
+    "@mongolsub/media": "workspace:*",
+    "@mongolsub/queue": "workspace:*",
+    "@mongolsub/storage": "workspace:*",
+    "@prisma/client": "6.19.0",
+    "bullmq": "^5.63.0",
+    "ioredis": "^5.8.0"
+  },
+  "devDependencies": {
+    "@types/busboy": "^1.5.4",
+    "@types/express": "^5.0.0"
+  }
+}

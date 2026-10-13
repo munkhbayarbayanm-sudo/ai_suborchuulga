@@ -1,0 +1,22 @@
+import 'reflect-metadata';
+import { Module } from '@nestjs/common';
+import { NestFactory } from '@nestjs/core';
+import type { Config } from '@mongolsub/config';
+import { StudioController } from './controller';
+import { StudioService } from './studio.service';
+import { ApiErrors } from './errors';
+export async function createApi(config: Config) {
+  @Module({ controllers: [StudioController], providers: [{ provide: StudioService, useFactory: () => new StudioService(config) }] })
+  class ApiModule {}
+  const app = await NestFactory.create(ApiModule, { logger: ['error', 'warn', 'log'] });
+  const origins = [config.WEB_ORIGIN];
+  const localOrigin = new URL(config.WEB_ORIGIN);
+  if (localOrigin.hostname === '127.0.0.1' || localOrigin.hostname === 'localhost') {
+    localOrigin.hostname = localOrigin.hostname === '127.0.0.1' ? 'localhost' : '127.0.0.1';
+    origins.push(localOrigin.origin);
+  }
+  app.enableCors({ origin: origins, methods: ['GET', 'POST', 'PATCH'], allowedHeaders: ['Content-Type'] });
+  app.useGlobalFilters(new ApiErrors());
+  app.enableShutdownHooks();
+  return app;
+}

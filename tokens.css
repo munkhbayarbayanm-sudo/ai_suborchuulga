@@ -1,0 +1,46 @@
+/* Hallmark · macrostructure: Index-First · tone: utilitarian editing software · anchor hue: amber */
+/* Hallmark · pre-emit critique: P4 H4 E4 S5 R5 V4 */
+:root {
+  color-scheme: dark;
+  --color-paper: oklch(16% 0.008 75);
+  --color-paper-2: oklch(19% 0.008 75);
+  --color-paper-3: oklch(23% 0.008 75);
+  --color-paper-hover: oklch(27% 0.010 75);
+  --color-ink: oklch(94% 0.010 75);
+  --color-ink-2: oklch(84% 0.012 75);
+  --color-muted: oklch(72% 0.012 75);
+  --color-rule: oklch(34% 0.010 75);
+  --color-control-rule: oklch(54% 0.010 75);
+  --color-accent: oklch(85% 0.145 75);
+  --color-accent-hover: oklch(88% 0.130 75);
+  --color-accent-ink: oklch(18% 0.015 75);
+  --color-focus: oklch(55% 0.075 75);
+  --color-success: oklch(80% 0.115 155);
+  --color-error: oklch(80% 0.115 25);
+  --color-error-paper: oklch(23% 0.030 25);
+  --color-selection: oklch(32% 0.050 75);
+  --font-display: "Bahnschrift", "Arial Narrow", "Segoe UI", sans-serif;
+  --font-body: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "Cascadia Code", "Consolas", "Liberation Mono", monospace;
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 12px;
+  --space-lg: 16px;
+  --space-xl: 24px;
+  --space-2xl: 32px;
+  --space-3xl: 48px;
+  --text-xs: 12px;
+  --text-sm: 14px;
+  --text-base: 15px;
+  --text-lg: 18px;
+  --text-xl: 24px;
+  --text-display: 30px;
+  --ease-out: cubic-bezier(.16, 1, .3, 1);
+  --ease-in: cubic-bezier(.7, 0, .84, 0);
+  --ease-in-out: cubic-bezier(.65, 0, .35, 1);
+  --dur-fast: 120ms;
+  --dur-normal: 180ms;
+  --rule-thin: 1px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+}

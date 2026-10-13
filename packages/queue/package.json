@@ -1,0 +1,1 @@
+{ "name": "@mongolsub/queue", "version": "0.1.0", "private": true, "type": "module", "exports": "./src/index.ts", "scripts": { "typecheck": "tsc --noEmit" }, "dependencies": { "bullmq": "^5.63.0", "ioredis": "^5.8.0", "zod": "^3.25.0", "@mongolsub/database": "workspace:*", "@mongolsub/domain": "workspace:*" } }
