@@ -8,20 +8,20 @@ Architecture: pnpm/Turbo, Next.js/React/Tailwind web, Nest REST API, standalone 
 worker, PostgreSQL/Prisma, validated contracts, streaming local storage, bounded
 FFprobe process adapter. No future AI services or editor entities will be scaffolded.
 
-1. [ ] Establish workspace/config/contracts/schema and a checked-in SQL migration.
-2. [ ] Test input validation, storage containment/cleanup, and process/parser failures
+1. [x] Establish workspace/config/contracts/schema and a checked-in SQL migration.
+2. [x] Test input validation, storage containment/cleanup, and process/parser failures
    before implementing config, storage, and media adapters.
-3. [ ] Implement thin controllers over a studio service; explicit DTO serialization;
+3. [x] Implement thin controllers over a studio service; explicit DTO serialization;
    stream multipart uploads, atomic media/job records, useful error mapping.
-4. [ ] Implement database-backed enqueue recovery and idempotent inspection worker;
+4. [x] Implement database-backed enqueue recovery and idempotent inspection worker;
    persist QUEUED/PROCESSING/COMPLETED/FAILED transitions and streams transactionally.
-5. [ ] Implement library/series/episode/import/status/metadata in a compact dark shell.
+5. [x] Implement library/series/episode/import/status/metadata in a compact dark shell.
    All future editing areas stay disabled and labelled.
-6. [ ] Exercise real PostgreSQL, Redis, filesystem and FFprobe through Nest HTTP:
+6. [x] Exercise real PostgreSQL, Redis, filesystem and FFprobe through Nest HTTP:
    create/update/read series, create/read/update episode, import synthetic video,
    wait for completion and check persisted streams; import invalid media and verify
    failure. Verify oversize/malformed uploads and missing tool behavior.
-7. [ ] Run lint/typecheck/unit/integration/build, inspect UI and scope, commit logical
+7. [x] Run lint/typecheck/unit/integration/build, inspect UI and scope, commit logical
    changes, update continuity docs and give the required evidence report.
 
 Validation commands: `pnpm test`, `pnpm test:integration`, `pnpm lint`,
