@@ -254,3 +254,26 @@ PREVIEW_RENDER_PARITY.md and ADR 0008.
 
 Phase 07 adds no output asset, render graph, final encode/export, subtitle burn, AI video command or
 generic keyframe system. Phase 08 may compile the stored product parameters into an offline render plan.
+
+## Derived Phase 08 render and delivery flow
+
+An export request names one VideoProject and exact expected project/subtitle revisions. RenderService locks and
+captures a versioned immutable RenderSnapshot containing normalized settings, the complete project EDL, controlled
+asset/stream IDs, source cues and QC summary. A stable fingerprint plus `render-compiler-v1` keeps historical
+results explainable. `clientRequestId` makes concurrent HTTP retries idempotent; intentional rerenders create new
+requests/jobs and never replace old outputs.
+
+The pure render package maps source subtitles into Project Timeline and emits a deterministic input list,
+generated text/ASS/SRT files, filter-complex script, encoder arguments, output manifest and warnings. Main video
+gaps become black frames. Clips compile to trim/crop/scale/pad/rotate/overlay/color chains; ordered image/text/blur
+layers compose afterward. Audio compiles to trim/rate/48 kHz stereo/volume/fade/delay, deterministic mixing and a
+limiter. Public/domain records contain product values rather than raw FFmpeg fragments.
+
+The separate worker resolves storage keys from database records, materializes leases, runs FFmpeg without a shell
+inside one isolated workspace and persists coarse/machine progress. Cancellation is checked before/during/after
+expensive stages and under the final job lock. FFprobe metadata plus beginning/middle/end sample decode must pass
+before one transaction publishes all RenderOutputs and COMPLETED status. Output access is a ranged controller;
+storage paths remain private. See RENDER_PIPELINE.md, EXPORT_FORMATS.md and ADR 0009.
+
+Phase 08 adds no natural-language editing, automatic edit application, generic transition/keyframe engine or
+deployment pipeline. Phase 09 remains unauthorized.

@@ -1,10 +1,11 @@
-# Preview and future render parity
+# Preview and Phase 08 render parity
 
-Phase 07 defines canonical project parameters and an interactive browser interpretation. Phase 08 must
-compile those parameters to a server render plan and compare representative output before claiming
-parity. Raw FFmpeg expressions are deliberately absent from public/domain records.
+Phase 07 defines canonical project parameters and an interactive browser interpretation. Phase 08 now
+compiles those parameters to a server render plan. Raw FFmpeg expressions remain absent from public/domain
+records. Integration exercises actual text, blur, audio envelopes, burn-in and soft-subtitle graphs, while the
+remaining visual differences below require human review rather than a claim of pixel identity.
 
-| Feature | Phase 07 preview | Canonical parameters | Phase 08 interpretation | Known limitation |
+| Feature | Phase 07 preview | Canonical parameters | Phase 08 renderer | Known limitation |
 |---|---|---|---|---|
 | Trim / split / move | Project resolver seeks retained source ranges | `sourceInMs`, `sourceOutMs`, `timelineStartMs`, `playbackRate` | `trim/atrim`, timestamp reset and placement | Browser seek/keyframe accuracy depends on codec |
 | Gaps | Black canvas and silence | No active primary clip | Generated black/silent interval | Browser background timing can throttle in hidden tabs |
@@ -12,9 +13,9 @@ parity. Raw FFmpeg expressions are deliberately absent from public/domain record
 | Position / scale / rotation | CSS transform | normalized X/Y, scale, degrees | scale/rotate/overlay | Edge interpolation may differ |
 | Crop | CSS clip-path | normalized four-edge crop | crop then scale | Preview clips the rendered layer rather than decoding fewer pixels |
 | Opacity | DOM/CSS opacity | 0–1 opacity | alpha/overlay composition | Color-space alpha rounding can differ |
-| Brightness / contrast / saturation | CSS filter | bounded scalar values | color filters | Browser color management and FFmpeg color space need explicit Phase 08 tests |
+| Brightness / contrast / saturation | CSS filter | bounded scalar values | `eq` color filters | Browser color management and FFmpeg default color space can differ |
 | Image/logo | Positioned image layer | asset ID, interval, transform, opacity | decoded image overlay | Animated images are not defined |
-| Text | DOM text layer | text, style snapshot, transform, interval | explicit font/text render | Exact fonts and line metrics must be packaged for render parity |
+| Text | DOM text layer | text, style snapshot, transform, interval | text file, controlled host font, expansion disabled | Exact font files are not packaged; line metrics can differ by host |
 | Rectangular blur | Clipped filtered duplicate | normalized box, interval, strength | crop/blur/overlay | Blur kernel units are visually approximate in browser |
 | Subtitle projection | DOM cue from retained source interval | SubtitleDocument ref and source cue ID/range | map current document cues through video EDL | Boundary-clipped cues are warnings; source cue remains intact |
 | Audio volume/mute | Web Audio GainNode | volume 0–2 and mute | volume/mix | Device output and limiter behavior differ |
@@ -22,5 +23,7 @@ parity. Raw FFmpeg expressions are deliberately absent from public/domain record
 | Multiple audio tracks | Up to three active routed elements | ordered overlapping audio clips | deterministic audio mix | Preview resource cap is lower than future offline mix capability |
 | Waveform | Existing min/max derivative mapped to source | derivative settings hash plus clip map | Diagnostic only | Peaks are decimated, not render audio |
 
-Phase 08 must define canvas pixel rounding, color space, font packaging, audio mix headroom, image decode
-policy, subtitle burn/pass-through choice and codec settings. It must not infer these from CSS output.
+Phase 08 uses even-pixel canvas rounding, contained image decode, a controlled font allowlist, 0.95 audio limiter,
+ASS/libass burn-in or MKV soft subtitles and H.264/AAC delivery. Browser color management, font rasterization,
+blur kernels, scaler interpolation and Web Audio device behavior remain approximate preview differences. Font
+packaging, explicit mastering color space and loudness targets are deferred and must be versioned if introduced.

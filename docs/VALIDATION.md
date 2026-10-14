@@ -1,6 +1,7 @@
 # Validation evidence
 
-Current Phase07 evidence: [PHASE_07_VALIDATION.md](PHASE_07_VALIDATION.md).
+Current Phase08 evidence: [PHASE_08_VALIDATION.md](PHASE_08_VALIDATION.md).
+Phase07 historical evidence: [PHASE_07_VALIDATION.md](PHASE_07_VALIDATION.md).
 Phase06 historical evidence: [PHASE_06_VALIDATION.md](PHASE_06_VALIDATION.md).
 Phase05 historical evidence: [PHASE_05_VALIDATION.md](PHASE_05_VALIDATION.md).
 Phase04 historical evidence: [PHASE_04_VALIDATION.md](PHASE_04_VALIDATION.md).
@@ -14,6 +15,7 @@ Phase04 was based directly on approved Phase03 `a195a3f31a1f2ad177394ec2b3908021
 Phase05 was based directly on approved Phase04 `a0cf1f068c0e48f3be16363f8965247512b4dfc2`.
 Phase06 was based directly on approved Phase05 `04fba34fdce43f6ee011aa7638626df6a7ba8e1f`.
 Phase07 was based directly on approved Phase06 `8e0addbd3ceaae2127af45540f4cb2e4b9dccdae`.
+Phase08 was based directly on approved Phase07 `c1211bb6e9c63e9aedb00ffb2296111b670b2df4`.
 Current HEAD after handoff is the final continuity commit; inspect `git log -2`.
 
 # Historical Phase 01 validation — 2026-10-13 (Asia/Ulaanbaatar)

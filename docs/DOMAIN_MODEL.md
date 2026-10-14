@@ -178,3 +178,23 @@ records. Operations use optimistic project revisions and idempotency keys. Undo/
 
 No render output, export, subtitle burn, raw FFmpeg graph, natural-language video command or generic
 keyframe entity was added. These remain beyond Phase 07.
+
+## Final render and delivery
+
+| Entity | Purpose / invariants |
+|---|---|
+| RenderRequest | One user intent for a VideoProject plus normalized settings and project-scoped client idempotency UUID |
+| RenderSnapshot | Immutable exact project/subtitle revision, compiler version, fingerprint and validated full render input JSON |
+| RenderJob | Unique durable ProcessingJob, state/stage/progress/speed/ETA/cancellation/error and timestamps for one snapshot |
+| RenderOutput | Validated stored VIDEO/SRT/ASS artifact with logical name, opaque key, bytes/checksum, media metadata and validation summary |
+
+RenderRequest+VideoProject client IDs are unique. Every request owns at most one snapshot and every snapshot owns
+at most one job. RenderJob has exactly one ProcessingJob. Output kind is unique within a job and storage keys are
+globally opaque/unique. Project revision, subtitle document ID/revision and normalized settings are frozen inside
+the snapshot; subsequent authoring edits cannot alter it. Fingerprints exclude creation time but include compiler
+behavior, inputs and settings.
+
+Only completed validation publishes RenderOutput rows. Cancellation/failure leaves the historical request,
+snapshot and terminal job for diagnosis while exposing no partial final artifact. Download contracts omit storage
+keys and filesystem paths. Render outputs are derivatives; original MediaAssets and all Phase 02–07 evidence,
+transcript/localization/subtitle/QC/project-operation records remain unchanged.
