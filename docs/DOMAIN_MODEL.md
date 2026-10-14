@@ -1,4 +1,4 @@
-# Domain model through Phase 05
+# Domain model through Phase 07
 
 | Entity | Purpose / invariants |
 |---|---|
@@ -152,4 +152,29 @@ fingerprint. Local preview is transient and bounded; it is not a QCRun. Accepted
 existing optimistic EditorOperation API, preserving audit and undo.
 
 Phase 06 does not alter Phase 02 source evidence, Phase 03 canonical transcripts, Phase 04 localization
-or Phase 05 history. No general video editing, final subtitle/video export or render entity was added.
+or Phase 05 history.
+
+## Non-destructive video projects
+
+| Entity | Purpose / invariants |
+|---|---|
+| VideoProject | Episode-owned historical edit decision list; explicit active pointer, canvas/fps/background/settings, source SubtitleDocument reference, revision and status |
+| VideoTrack | Ordered VIDEO/AUDIO/IMAGE/TEXT/SUBTITLE/EFFECT lane with explicit visibility, mute and lock state |
+| ProjectAsset | Project-owned reference to an immutable Episode MediaAsset; classified VIDEO/AUDIO/IMAGE without copying source bytes |
+| VideoClip | Track/asset placement with source in/out, project start, rate, linked group, transform/crop/color and audio volume/fades |
+| VisualOverlay | Timed IMAGE/TEXT/BLUR layer with normalized geometry, style/strength and optional ProjectAsset reference |
+| VideoEditOperation | Append-only typed edit, base/result project revision, client idempotency ID and atomic before/after mutable-state snapshots |
+
+Project and source time use integer milliseconds. A clip maps project time by
+`sourceIn + (projectTime - timelineStart) * playbackRate`; source bounds remain inside the referenced
+asset duration. The main VIDEO track cannot overlap. Crop and overlay rectangles are normalized;
+volume is 0–2. Database checks and runtime schemas enforce bounds and ownership. Episode activation is
+explicit and never inferred from newest project.
+
+SubtitleDocument remains the source of cues. Project subtitle rows are read projections carrying source
+cue IDs, mapped project intervals and partial-cut warnings; video edits never delete or rewrite cues.
+ProjectAsset references originals, while waveform preparation reuses existing MediaDerivative and job
+records. Operations use optimistic project revisions and idempotency keys. Undo/redo append history.
+
+No render output, export, subtitle burn, raw FFmpeg graph, natural-language video command or generic
+keyframe entity was added. These remain beyond Phase 07.

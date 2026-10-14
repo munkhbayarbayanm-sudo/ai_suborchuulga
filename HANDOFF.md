@@ -1,17 +1,15 @@
-# Phase 06 handoff
+# Phase 07 handoff
 
-Read `PROJECT_STATE.md` first. Branch `codex/phase-06-subtitle-qc` was created directly from approved
-Phase 05 commit `04fba34fdce43f6ee011aa7638626df6a7ba8e1f` (implementation commit
-`37d2893ee0be9da9bc48274d5ff0b308e888083d`). Phase 06 implementation commit is
-`6d30da230bdb43ce8fd670f00cec67be7c71cf38`. No merge, push or deployment was performed. Phase 06 is
-the stop.
+Read `PROJECT_STATE.md` first. Branch `codex/phase-07-video-editor` was created directly from approved
+Phase 06 commit `8e0addbd3ceaae2127af45540f4cb2e4b9dccdae` (implementation commit
+`6d30da230bdb43ce8fd670f00cec67be7c71cf38`). Phase 07 implementation commit is
+`edc9893aa5242447948b7b20b5aa3a959c6f6bf1`; its continuity commit follows it. No merge, push or
+deployment was performed.
 
 ## Windows startup
 
-Private `.env`, portable tools, media, generated derivatives and provider keys remain ignored.
-Managed worktrees do not copy the ignored `.tools` directory. Run `scripts/setup-local-windows.ps1`
-inside the worktree first, or launch `pnpm dev:local-infra` from the primary checkout that already owns
-the portable toolchain while keeping the same loopback `.env` ports.
+Private `.env`, portable tools, media, derivatives and generated builds remain ignored. A managed worktree
+does not copy `.tools`; start portable infrastructure from the primary checkout or run the setup script.
 
 ```powershell
 pnpm dev:local-infra
@@ -20,22 +18,19 @@ pnpm db:migrate
 pnpm dev
 ```
 
-Open `http://127.0.0.1:3000`. Do not run a second MongolSub worker during integration because its
-storage root is temporary. Stop owned processes with Ctrl+C; do not flush shared Redis or truncate
-PostgreSQL.
+Open `http://127.0.0.1:3000`. Do not run a second MongolSub worker during integration because worker test
+storage is temporary. Stop owned processes with Ctrl+C. Do not flush shared Redis or truncate databases.
 
-## Manual QC workflow
+## Manual Phase 07 workflow
 
-1. Open an Episode's explicitly active SubtitleDocument in the editor.
-2. In Subtitle quality control, keep AI Off for provider-free checks, choose a profile and Run full QC.
-3. Review real counts and AI stage status; filter by severity/category/state and use Previous/Next.
-4. Click an issue and confirm cue selection, video seek, transcript scroll and symbolic timeline marker.
-5. Resolve or ignore with a reason. Rerun unchanged evidence and confirm the same fingerprint preserves
-   ignore; edit the cue and confirm the old report becomes STALE.
-6. Apply a safe suggestion. Confirm an EditorOperation is recorded, then Undo and confirm restoration.
-7. Edit a cue and inspect bounded local recheck output; run full QC for a current delivery report.
-8. Open Series QC from Series workspace. Confirm exact active document revisions, missing-active count,
-   profile selection and deep links to the correct episode/document/cue.
+1. Import and inspect legal synthetic video, then create/activate a SubtitleDocument if subtitle mapping is needed.
+2. From Episode workspace create a Video Project, activate it explicitly and open Video Editor.
+3. Play/seek; split linked main video/audio, trim/move/delete and confirm black/silent gaps or close them manually.
+4. Confirm subtitle cues map from retained source ranges and a boundary cut shows a warning without changing the cue.
+5. Add/import an image, audio or video asset. Add image, text and timed blur overlays; adjust transform/crop/color.
+6. Lower/mute original audio, add background audio and set trim/volume/fade. Prepare and inspect its waveform.
+7. Undo/redo linked and overlay edits. Reload and confirm server state plus pending-operation recovery UI.
+8. Open a second editor revision and confirm a stale operation receives HTTP 409 instead of overwriting work.
 
 ## Validation
 
@@ -43,30 +38,34 @@ PostgreSQL.
 pnpm db:migrate
 pnpm db:test:migrations
 pnpm lint
-pnpm test
-pnpm test:integration
-pnpm benchmark:qc
-pnpm build
 pnpm typecheck
+pnpm test
+pnpm --filter @mongolsub/web test
+pnpm test:integration
+pnpm benchmark:video-editor
+pnpm build
 ```
 
-Run compiled API, worker and Next artifacts after the build and exercise the legal synthetic browser flow.
-See `docs/PHASE_06_VALIDATION.md` for exact evidence and limitations. Deterministic fixture-provider tests
-validate batching, IDs, proposals, unavailable/malformed behavior; they are not real LLM quality proof.
+Run compiled API, worker and Next artifacts after build, then exercise the legal synthetic browser flow.
+See `docs/PHASE_07_VALIDATION.md` for exact evidence, benchmark scope and limitations.
 
 ## Recovery and invariants
 
-A QCRun is meaningful only with its QCRunDocument revisions and QCProfile/settings/engine snapshot.
-EditorService marks completed input reports stale in the same operation transaction. Never update report
-revision fields to make old results appear current. Ignore transfers only by exact evidence fingerprint.
+Project time is the master; media elements are followers. Never derive durable timeline state from an
+element clock. Resolve storage paths from controlled IDs only. Keep original MediaAsset and all
+SourceSegment/TranscriptSegment/LocalizedSegment/SubtitleCue/QC records immutable from video operations.
 
-QC never changes SubtitleCue directly. Apply QCSuggestion through EditorService with current optimistic
-revision. Local preview is transient and bounded. AI is optional, OFF by default and proposal-only.
-PostgreSQL remains durable enqueue authority; final issue persistence is atomic after cancellation and
-revision checks.
+Every project write must validate the expected revision and typed payload, hold the project lock and append
+one operation with before/after state. `clientOperationId` deduplicates retry. Browser IndexedDB is only a
+pending queue; PostgreSQL is authoritative. Undo/redo append inverse actions. The current snapshot rewrite
+is O(project-size), while playhead lookup uses ordered indexes.
+
+Preview is not render proof. Follow `docs/PREVIEW_RENDER_PARITY.md` when compiling crop, transforms, color,
+fonts, blur and audio in a future phase.
 
 ## Exact continuation
 
-STOP until Phase 07 is explicitly authorized. Preserve Phase 06 history and all earlier derived/source
-layers. Do not begin general video editing, cut/trim/effects/audio work, final subtitle/video export or
-rendering without a new authorization.
+STOP until Phase 08 is explicitly authorized. Begin with a versioned render-plan model for one explicit
+VideoProject revision, then compile deterministic video/audio/subtitle/filter inputs, add durable render
+jobs, progress, cancellation, output assets and output validation. Do not mutate original media or infer
+render behavior from CSS. Natural-language video editing and generic keyframes remain later work.

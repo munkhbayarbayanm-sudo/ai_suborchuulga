@@ -74,8 +74,8 @@ installed for `node dist/main.js`. This is not a standalone deployment image.
 Series declared language is extensible and independent of stream language tags.
 Streams preserve source codec/language/title/index; future extraction can reference
 asset+stream provenance. Subtitle revisions/manual approvals, memory and localization
-are separate entities, not mutations of original media or source evidence. Professional
-timeline editing, undo history and render/export remain future phases.
+are separate entities, not mutations of original media or source evidence. Final render/export remains
+a future phase.
 
 ## Independent Phase 02 source flow
 
@@ -232,3 +232,25 @@ only through EditorService, which also marks prior completed reports stale insid
 The editor renders bounded paginated issue rows and non-color timeline symbols. Series Quality analyzes
 explicit active documents, reports missing active documents and deep-links to the exact document/cue.
 See QC_ENGINE.md and ADR 0007. No Phase 07 editing or final render/export is present.
+
+## Derived Phase 07 video project flow
+
+An explicit Episode-owned `VideoProject` references immutable `ProjectAsset`/`MediaAsset` inputs and an
+explicit SubtitleDocument. The Project Timeline is the transport master; source time is derived from
+clip source bounds, project start and playback rate. Main-video overlap is invalid, gaps are black/silent,
+and linked video/audio edits are one atomic operation. Subtitle cues are projected by source interval and
+ID; cuts can hide or partially clip them but cannot mutate their source document.
+
+The pure video-editor package owns deterministic operations, validation, interval indexes, snapping,
+audio envelopes and subtitle mapping. Nest exposes purpose-built project/timeline DTOs. Each mutation
+uses serializable locking, expected project revision, client idempotency and an append-only before/after
+snapshot. IndexedDB holds unacknowledged browser operations; PostgreSQL remains authoritative.
+
+The browser uses a performance-based project clock, two-video active/next pool and bounded drift
+correction. A DOM/CSS compositor previews normalized transform/crop/color, image/text and timed blur.
+Web Audio routes muted media elements through gain/fade nodes. Existing waveform derivatives/jobs are
+reused and mapped from project windows to clip source windows. See VIDEO_EDITOR_ARCHITECTURE.md,
+PREVIEW_RENDER_PARITY.md and ADR 0008.
+
+Phase 07 adds no output asset, render graph, final encode/export, subtitle burn, AI video command or
+generic keyframe system. Phase 08 may compile the stored product parameters into an offline render plan.

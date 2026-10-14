@@ -4,59 +4,58 @@ Updated 2026-10-14, Asia/Ulaanbaatar.
 
 | Field | State |
 |---|---|
-| Current / last authorized phase | Phase 06: full subtitle QC and series consistency |
-| Approved Phase 05 baseline | `04fba34fdce43f6ee011aa7638626df6a7ba8e1f` |
-| Active branch | `codex/phase-06-subtitle-qc`, created directly from the approved Phase 05 commit |
-| Phase 06 implementation commit | `6d30da230bdb43ce8fd670f00cec67be7c71cf38` |
+| Current / last authorized phase | Phase 07: non-destructive general video editor |
+| Approved Phase 06 baseline | `8e0addbd3ceaae2127af45540f4cb2e4b9dccdae` |
+| Active branch | `codex/phase-07-video-editor`, created directly from the approved Phase 06 commit |
+| Phase 07 implementation commit | `edc9893aa5242447948b7b20b5aa3a959c6f6bf1` |
 | Merge / push | Neither authorized nor performed |
-| Next phase | Phase 07 requires new explicit authorization |
-| Deployment | Local Windows validation only; Docker host failure remains unresolved |
+| Next phase | Phase 08 requires new explicit authorization |
+| Deployment | Local Windows validation only; no production deployment |
 
-## Implemented through Phase 06
+## Implemented through Phase 07
 
-Phases 01–05 remain intact: immutable media, independent source evidence, versioned fusion,
-English/Chinese to Mongolian localization, memory, explicit active runs, derived SubtitleDocuments,
-append-only EditorOperations, undo/redo, playback proxy, waveform and proposal-only AI rewrite.
+Phases 01–06 remain intact: immutable media and source evidence, versioned fusion/localization,
+SubtitleDocument editing, append-only subtitle operations, media proxy/waveform preparation and historical
+revision-bound QC.
 
-Phase 06 adds QCProfile, revision-bound document/series QCRun, exact QCRunDocument inputs, QCIssue,
-QCIssueCueLink and QCSuggestion. The deterministic subtitle-qc-v1 engine checks timing, overlap/gaps,
-density, reading load, layout/text hygiene, untranslated/mixed text, negation/numbers, explicit names,
-glossary and contextual чи/та shifts. Series consistency groups explicit active documents by approved
-character/glossary memory. Evidence fingerprints carry an ignore only when relevant evidence is unchanged.
+Phase 07 adds `VideoProject`, `VideoTrack`, `ProjectAsset`, `VideoClip`, `VisualOverlay` and append-only
+`VideoEditOperation`. An Episode chooses an active project explicitly. Project time is the transport
+master, with deterministic source mapping, primary-video gap/overlap rules, linked video/audio operations,
+subtitle cue projection and partial-cut warnings. Original media and every earlier evidence/derived record
+remain unchanged.
 
-RUN_SUBTITLE_QC and RUN_SERIES_QC use the existing durable worker path. Optional AI review is OFF by
-default, bounded and provider-validated. Provider absence or optional malformed output does not remove
-deterministic results. Suggestions never change cues; acceptance delegates to EditorService, remains
-undoable and marks older reports stale. A bounded local deterministic preview runs after cue edits.
-
-The editor adds summary, severity/category/state filters, paginated issues, next/previous navigation,
-non-color timeline markers, cue seek and suggestion actions. Series Quality shows exact document
-revisions, missing active documents, profile override and deep links to each episode/document/cue.
+The browser editor provides a two-video active/preload pool, bounded drift correction, black/silent gaps,
+DOM/CSS transform/crop/color/image/text/blur compositing, Web Audio volume/mute/fades, background audio,
+windowed timeline rendering, snapping, type-specific inspectors and safe shortcuts. Pointer-up commits one
+typed operation. Autosave uses optimistic project revisions; IndexedDB retains unacknowledged operations.
+Undo/redo appends inverse operations. Existing inspected assets and waveform jobs/derivatives are reused.
 
 ## Executed evidence
 
-See `docs/PHASE_06_VALIDATION.md` for exact commands and counts. Deterministic/provider-boundary QC,
-real Nest/PostgreSQL integration, additive migration chain, synthetic 1,200-cue and 20,000-cue benchmarks,
-production build, compiled runtime and browser workflow are recorded separately. No paid provider result
-is inferred from deterministic fixtures.
+See `docs/PHASE_07_VALIDATION.md`. Unit/web tests, real PostgreSQL/Redis integration, the additive 13-step
+migration chain, production builds, browser acceptance and a synthetic 60-minute resolver benchmark are
+recorded separately. Benchmark numbers describe pure resolution only; no final encode throughput was
+measured or claimed.
 
 ## Environment and limitations
 
-Validated locally on Windows with the repository's portable PostgreSQL/Redis and FFmpeg setup. Heuristic
-language/fidelity checks are review signals, not proof of semantic correctness. Name/glossary checks only
-use explicit memory. Local recheck is bounded and transient; full QC is the authoritative captured report.
-AI linguistic quality remains unverified unless real credentials are supplied.
+Validated locally on Windows with portable PostgreSQL/Redis and the repository FFmpeg setup. Ripple edit,
+multi-select, filmstrip, project duplication and relinking inference are deferred. Preview allows at most
+three simultaneous routed audio clips. CSS color/blur/font output and browser seek behavior are interactive
+approximations; `docs/PREVIEW_RENDER_PARITY.md` defines the Phase 08 parity work.
 
-No Phase 07 general video editing, final subtitle/video export, render pipeline, cut/trim/effects or audio
-editing was implemented.
+No final MP4/MKV render, release encode, subtitle burn/export, raw final FFmpeg graph, natural-language
+video editing, advanced transition library or generic keyframe engine was implemented.
 
 ## Exact continuation
 
-STOP. Await explicit Phase 07 authorization. Continue from explicit active SubtitleDocuments and their
-current revisions. A future phase may consume completed current QCRuns, but must preserve historical
-reports, issue links, ignores, EditorOperation history and all Phase 02–04 evidence.
+STOP. Await explicit Phase 08 authorization. A future render phase may consume an explicit VideoProject
+revision and compile its clips, overlays, source-mapped SubtitleDocument cues and audio envelopes into a
+validated offline render plan. It must preserve source immutability and define fonts, color space, canvas
+rounding, audio headroom, subtitle strategy, codecs, render jobs/progress and output validation.
 
 Required reads: `AGENTS.md`, `PROJECT_STATE.md`, `HANDOFF.md`, `docs/MASTER_SPEC.md`,
 `docs/ARCHITECTURE.md`, `docs/ROADMAP.md`, `docs/DOMAIN_MODEL.md`, `docs/VALIDATION.md`,
-`docs/PHASE_06_VALIDATION.md`, `docs/QC_ENGINE.md`, `docs/SUBTITLE_EDITOR_ARCHITECTURE.md` and
+`docs/PHASE_07_VALIDATION.md`, `docs/VIDEO_EDITOR_ARCHITECTURE.md`,
+`docs/PREVIEW_RENDER_PARITY.md`, `docs/QC_ENGINE.md`, `docs/SUBTITLE_EDITOR_ARCHITECTURE.md` and
 `docs/adr/*`.
