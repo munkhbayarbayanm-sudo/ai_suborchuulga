@@ -1,15 +1,15 @@
-# Domain model through Phase 04
+# Domain model through Phase 05
 
 | Entity | Purpose / invariants |
 |---|---|
 | Series | Title, description, optional declared source language; many Episodes |
-| Episode | Series, title, optional number/source language; original assets, jobs, extraction/fusion/localization runs; explicit activeFusionRunId and activeLocalizationRunId |
+| Episode | Series, title, optional number/source language; original assets/jobs/derived runs; explicit activeFusionRunId, activeLocalizationRunId and activeSubtitleDocumentId |
 | MediaAsset | Immutable original storage reference/filename/bytes/inspection; many streams/runs/derivatives |
 | MediaStream | Exact asset-local index, type, codec, source language/title and audio/video metadata |
-| ProcessingJob | INSPECT_MEDIA, EXTRACT_EMBEDDED_SUBTITLE, TRANSCRIBE_AUDIO, OCR_BURNED_SUBTITLE, FUSE_TRANSCRIPT or LOCALIZE_TRANSCRIPT |
+| ProcessingJob | Prior job types plus GENERATE_EDITOR_PROXY and GENERATE_WAVEFORM |
 | SourceExtractionRun | One independent method/provider/version/model/settings/revision execution for an asset and optional selected stream |
 | SourceSegment | Timed source text and language/confidence/speaker, sequence, validated words and provider-scoped metadata |
-| MediaDerivative | Cached AUDIO_MONO_16K PCM16 artifact; original asset, selected audio index, opaque key, normalization snapshot/hash/size |
+| MediaDerivative | Cached normalized audio, EDITOR_PROXY_MP4 or WAVEFORM_PEAKS; source asset, opaque storage key, settings snapshot/hash/size |
 
 UUID relationships and composite mediaAsset+episode / stream+mediaAsset foreign
 keys enforce ownership. Segments reference exactly one run; source method/stream
@@ -112,5 +112,20 @@ UNREVIEWED/REVIEWED/APPROVED and confidence classification. Approving current te
 trusted HUMAN_APPROVED memory tied to that exact revision; later edits/review revocation
 archive it. Approved memory identity/provenance cannot be manually rewritten.
 
-No professional editor/timeline, waveform, timing change, subtitle split/merge, video edit,
-render/export or full final-QC entity was added. Those require future authorization.
+## Professional subtitle editor
+
+| Entity | Purpose / invariants |
+|---|---|
+| SubtitleDocument | Historical editable Mongolian document from one explicit LocalizationRun/media asset; version/initialization identity/revision and explicit Episode activation |
+| SubtitleCue | Ordered millisecond interval/text/status/origin/revision; soft deletion retains structural history; ownership constrained |
+| SubtitleCueSourceLink | Cue to exact LocalizedSegment and LocalizationRun; split clones and merge unions links without changing source |
+| EditorOperation | Typed text/timing/structural/status/accept/undo/redo action; base/result revisions, before/after snapshots, client idempotency and optional target |
+| EditorRewriteProposal | Provider/model/action/current snapshot/proposed Mongolian/confidence/reasons and explicit decision state |
+| EditorMediaPreparation | Source asset, proxy/waveform kind/settings hash, durable job, cached derivative and lifecycle |
+
+Cue timing uses original media integer milliseconds with start>=0/end>start. Document+sequence/start,
+status and source-link indexes serve timeline/paging/issue queries. Document+clientOperationId prevents
+duplicate edits. Media preparation is unique by source asset+kind+settings hash.
+
+No final export/render, full Phase 06 QC entity, general video edit, effect, cut/trim or audio edit was
+added. Those require future authorization.

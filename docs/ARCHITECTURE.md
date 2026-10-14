@@ -185,5 +185,28 @@ Deterministic review checks propagate source risk and conservatively flag number
 negation, selected glossary terms, explicitly known names and reading load. Provider
 semantic issues can force review or LIKELY_PROBLEM. Confidence is an explainable product
 score, not calibrated probability or human approval. No permanent character/relationship
-canon is inferred by AI. Phase 04 has dense paginated review and small memory forms, without
-timeline/waveform, timing edits, split/merge, video operations or final QC.
+canon is inferred by AI. Phase 04 has dense paginated review and small memory forms. Phase 05
+consumes its output through the separate editor layer described below.
+
+## Derived Phase 05 subtitle editor flow
+
+An explicit completed LocalizationRun initializes a SubtitleDocument and one SubtitleCue per current
+LocalizedSegment. SubtitleCueSourceLink preserves the exact many-to-many provenance path. The editor
+never edits LocalizedSegment, TranscriptSegment or SourceSegment. Episode activation is explicit and
+historical documents remain intact.
+
+EditorService validates typed operations, locks the document, checks one optimistic revision and
+atomically writes cue state plus an append-only before/after EditorOperation. Split clones provenance;
+merge unions it; structural replacements use soft deletion. Undo/redo are new operations and do not
+rewrite history. Client operation UUIDs deduplicate retries. IndexedDB is a browser write-ahead recovery
+queue; PostgreSQL remains authoritative.
+
+Browser playback is the master media clock. Compatible source assets use controlled range streaming;
+other codecs use a cached versioned H.264/AAC MP4 derivative. The worker streams decoded mono PCM into
+multi-resolution min/max waveform JSON. Both preparations use durable jobs, settings hashes, controlled
+storage IDs, cancellation polling and temporary cleanup. Timeline/transcript render bounded windows.
+
+AI rewrite reuses the Phase 04 provider boundary in a REWRITE phase and persists a proposal. Only an
+accepted editor operation changes cue text. See SUBTITLE_EDITOR_ARCHITECTURE.md and ADR0006.
+
+Phase 05 has no final render/export, general video edit, full QC engine or audio editing.

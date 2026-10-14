@@ -12,7 +12,7 @@ export const createEpisodeSchema = z.object({ title, episodeNumber: z.number().i
 export const updateEpisodeSchema = createEpisodeSchema.partial().refine(v => Object.keys(v).length > 0, 'Provide at least one field');
 const dates = { createdAt: z.string().datetime(), updatedAt: z.string().datetime() };
 export const seriesSchema = z.object({ id: idSchema, title: z.string(), description: z.string().nullable(), sourceLanguage: z.string().nullable(), ...dates });
-export const episodeSchema = z.object({ id: idSchema, seriesId: idSchema, title: z.string(), episodeNumber: z.number().nullable(), sourceLanguage:languageId.nullable().default(null),activeFusionRunId:idSchema.nullable().default(null), ...dates });
+export const episodeSchema = z.object({ id: idSchema, seriesId: idSchema, title: z.string(), episodeNumber: z.number().nullable(), sourceLanguage:languageId.nullable().default(null),activeFusionRunId:idSchema.nullable().default(null),activeLocalizationRunId:idSchema.nullable().default(null),activeSubtitleDocumentId:idSchema.nullable().default(null), ...dates });
 export const streamSchema = z.object({ id: idSchema, mediaAssetId: idSchema, streamIndex: z.number().int(), type: streamType, codec: z.string().nullable(), language: z.string().nullable(), title: z.string().nullable(), width: z.number().nullable(), height: z.number().nullable(), frameRate: z.number().nullable(), channels: z.number().nullable(), sampleRate: z.number().nullable() });
 export const mediaAssetSchema = z.object({ id: idSchema, episodeId: idSchema, originalFilename: z.string(), mimeType: z.string(), sizeBytes: z.string().regex(/^\d+$/), durationMs: z.number().nullable(), containerFormat: z.string().nullable(), width: z.number().nullable(), height: z.number().nullable(), status: assetStatus, ...dates, streams: z.array(streamSchema).optional() });
 export const seriesDetailSchema = seriesSchema.extend({ episodes: z.array(episodeSchema) });
@@ -32,3 +32,4 @@ export * from './extraction';
 export * from './fusion';
 export * from './localization';
 export * from './memory';
+export * from './editor';

@@ -24,6 +24,7 @@
     "benchmark:fusion": "tsx scripts/fusion-benchmark.ts",
     "benchmark:fusion:persistence": "dotenv -e .env -- tsx scripts/fusion-persistence-benchmark.ts",
     "benchmark:localization": "dotenv -e .env -- tsx scripts/localization-benchmark.ts",
+    "benchmark:editor": "dotenv -e .env -- tsx scripts/editor-benchmark.ts",
     "db:test:migrations": "dotenv -e .env -- tsx scripts/check-migrations.ts"
   },
   "devDependencies": {

@@ -1,4 +1,4 @@
-import type {LocalizationMode, LocalizationReason, LocalizationSettings,SeriesLocalizationProfile, CharacterDto, RelationshipDto, GlossaryEntryDto, TranslationMemoryEntryDto,ReviewCategory} from '@mongolsub/contracts';
+import type {LocalizationMode, LocalizationReason, LocalizationSettings,SeriesLocalizationProfile, CharacterDto, RelationshipDto, GlossaryEntryDto, TranslationMemoryEntryDto,ReviewCategory,EditorRewriteAction} from '@mongolsub/contracts';
 
 export interface LocalizationSource {
   id:string; sequence:number; text:string; startMs:number; endMs:number; speaker:string|null;
@@ -25,7 +25,8 @@ export interface TranslationSegment {
 }
 export interface TranslationUsage {inputTokens:number|null;outputTokens:number|null;cachedTokens:number|null}
 export interface TranslationInput {
-  phase:'DRAFT'|'REVIEW'; mode:LocalizationMode; sourceLanguage:'en'|'zh'; batch:LocalizationBatch; drafts?:TranslationSegment[];
+  phase:'DRAFT'|'REVIEW'|'REWRITE'; mode:LocalizationMode; sourceLanguage:'en'|'zh'; batch:LocalizationBatch; drafts?:TranslationSegment[];
+  rewrite?:{action:EditorRewriteAction;currentText:string;linkedSourceIds:string[];neighborCueTexts:string[]};
 }
 export interface TranslationResult {segments:TranslationSegment[];usage:TranslationUsage;model:string;providerVersion:string|null}
 export interface TranslationProvider {

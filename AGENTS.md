@@ -5,8 +5,8 @@ history before edits. Treat repository documents as continuity authority; do not
 depend on chat history. Read `docs/MASTER_SPEC.md`, `docs/ARCHITECTURE.md`,
 `docs/ROADMAP.md` and relevant ADRs before changing architecture.
 
-Phases 01 through 04 have been authorized. Stop after Phase 04; do not begin Phase 05,
-professional editor work or another phase without explicit
+Phases 01 through 05 have been authorized. Stop after Phase 05; do not begin Phase 06,
+full QC, export/render, general video editing or another phase without explicit
 user authorization. Do not silently replace Nest, Next, Prisma/PostgreSQL, BullMQ,
 the storage boundary, or the separate-worker model. Original media is immutable.
 Never put filesystem paths into public contracts or media blobs into PostgreSQL.
@@ -18,6 +18,9 @@ reruns preserve old manual results, and changing the active run is explicit.
 Do not compare English/Chinese text across languages in fusion. Phase04 localization
 is separate derived data; canonical/source records remain unchanged. Never overwrite
 manual localization with AI, automatically approve AI or invent permanent series canon.
+Phase05 subtitle documents are another derived layer. Editor operations must not mutate
+localization/canonical/source records. Preserve cue provenance, append-only history,
+explicit activation and optimistic conflicts. AI rewrite remains a proposal until accepted.
 
 Preserve existing user work and services. Use `codex/` branches, never merge to main
 without authorization. Do not commit `.env`, credentials, tools, uploaded media,

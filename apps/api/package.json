@@ -30,6 +30,7 @@
     "@mongolsub/extraction": "workspace:*",
     "@mongolsub/fusion": "workspace:*",
     "@mongolsub/localization": "workspace:*"
+    ,"@mongolsub/editor": "workspace:*"
   },
   "devDependencies": {
     "@types/busboy": "^1.5.4",

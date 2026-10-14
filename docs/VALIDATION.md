@@ -1,6 +1,7 @@
 # Validation evidence
 
-Current Phase04 evidence: [PHASE_04_VALIDATION.md](PHASE_04_VALIDATION.md).
+Current Phase05 evidence: [PHASE_05_VALIDATION.md](PHASE_05_VALIDATION.md).
+Phase04 historical evidence: [PHASE_04_VALIDATION.md](PHASE_04_VALIDATION.md).
 Phase03 historical evidence: [PHASE_03_VALIDATION.md](PHASE_03_VALIDATION.md).
 Phase02 historical evidence: [PHASE_02_VALIDATION.md](PHASE_02_VALIDATION.md).
 These distinguish deterministic localization/fusion and injected provider fixtures from
@@ -8,6 +9,7 @@ historical actual CPU extraction inference, real paid-provider execution, compil
 browser checks and unverified environment gates.
 Phase03 implementation commit: `b1a3b90162c6b77a6e1aee37f85c2f8c1c586f3a`.
 Phase04 was based directly on approved Phase03 `a195a3f31a1f2ad177394ec2b390802175e0896a`.
+Phase05 was based directly on approved Phase04 `a0cf1f068c0e48f3be16363f8965247512b4dfc2`.
 Current HEAD after handoff is the final continuity commit; inspect `git log -2`.
 
 # Historical Phase 01 validation — 2026-10-13 (Asia/Ulaanbaatar)

@@ -4,110 +4,67 @@ Updated 2026-10-14, Asia/Ulaanbaatar.
 
 | Field | State |
 |---|---|
-| Current / last authorized phase | Phase 04: high-quality Mongolian localization engine |
-| Approved Phase 03 baseline | `a195a3f31a1f2ad177394ec2b390802175e0896a`; implementation `b1a3b90162c6b77a6e1aee37f85c2f8c1c586f3a` |
-| Active branch | `codex/phase-04-mongolian-localization`, created directly from the approved Phase 03 commit |
-| Phase 04 implementation commit | `6c26caf018448b5365c3d9556d928208d5749967` |
-| Latest continuity commit | Current HEAD after final handoff; inspect `git log -2` |
+| Current / last authorized phase | Phase 05: professional subtitle editor |
+| Approved Phase 04 baseline | `a0cf1f068c0e48f3be16363f8965247512b4dfc2` |
+| Active branch | `codex/phase-05-subtitle-editor`, created directly from the approved Phase 04 commit |
+| Phase 05 implementation commit | Inspect `git log -2` after handoff commit |
 | Merge / push | Neither authorized nor performed |
-| Next phase | Phase 05 requires new explicit authorization |
-| Deployment | Local validation only; Docker host failure remains unresolved |
+| Next phase | Phase 06 requires new explicit authorization |
+| Deployment | Local Windows validation only; Docker host failure remains unresolved |
 
-## Implemented
+## Implemented through Phase 05
 
-Phases 01–03 remain intact: Next/Nest/Prisma PostgreSQL/Redis BullMQ, immutable media,
-independent embedded/ASR/OCR evidence, canonical transcript fusion, provenance, word timing,
-manual canonical correction and explicit active FusionRun.
+Phases 01–04 remain intact: immutable media, independent embedded/ASR/OCR evidence,
+versioned canonical fusion, contextual English/Chinese → Mongolian localization, manual
+correction/approval and explicit active FusionRun/LocalizationRun.
 
-Phase 04 adds additive LocalizationRun, LocalizationBatch and 1:1 LocalizedSegment records.
-Every run names one explicit completed English or Chinese FusionRun and snapshots its current
-canonical source plus relevant Series context. Target is Mongolian Cyrillic (`mn`). STRICT,
-NATURAL and CINEMATIC modes use versioned `localization-prompt-v1` and
-`localization-pipeline-v1`; old runs/manual work remain immutable history and activation is
-explicit.
+Phase 05 adds a separate editable layer. A SubtitleDocument is initialized from one explicit
+COMPLETED LocalizationRun and owns ordered SubtitleCues. Cue source links retain every contributing
+LocalizedSegment and its path to TranscriptSegment, source evidence and word timing. Phase 02–04
+records are never modified. Initialization is idempotent by LocalizationRun+initialization key;
+intentional new keys create history. Episode.activeSubtitleDocumentId changes only explicitly.
 
-The reusable `packages/localization` boundary builds bounded coherent target/context windows,
-applies scoped Glossary and exact trusted Translation Memory, includes only explicit character
-speaker bindings, creates DRAFT/REVIEW prompts, validates exact structured target IDs and adds
-explainable deterministic quality signals. Context and complete provider prompts have separate
-bounds. Source risk propagates. Number, negation, glossary, approved-name and reading-load
-checks flag review; provider semantic findings can force LIKELY_PROBLEM. Product confidence is
-not calibrated probability and never equals human approval.
+All text/timing/structural edits are typed EditorOperations with before/after snapshots, base/result
+document revisions and optional client operation IDs. MOVE, resize start/end, split, merge, delete,
+create, status and accepted rewrite are atomic. Split clones provenance; merge unions provenance.
+Soft-deleted structural rows keep undo history. UNDO/REDO append operations targeting the original
+operation. Stale revisions return 409. Browser autosave first stores the operation in IndexedDB,
+removes it after acknowledgement and offers retry/discard recovery after reload.
 
-The real initial adapter is configurable OpenAI Responses with strict JSON schema, bounded
-response/timeout/retry behavior and server-only credentials. Missing/disabled configuration
-reports MISCONFIGURED/UNAVAILABLE while prior phases boot. English and Chinese share the same
-provider path without script conversion. Normal tests use deterministic providers; no valid
-local credential/model existed, so no real paid English→Mongolian or Chinese→Mongolian request
-was executed or claimed.
+Video is the editor master clock. Browser-compatible originals stream directly; unsupported media
+uses one cached H.264/AAC MP4 derivative. Playback supports validated single HTTP byte ranges with
+200/206/416 behavior. The worker streams mono 8 kHz PCM from FFmpeg into min/max waveform buckets
+at 1000/100/25 ms without buffering the whole episode. Settings are hashed and derivatives reused.
 
-Character, alias, free-form relationship, Series localization profile, scoped Glossary and
-Translation Memory records are manually managed. AI suggestions cannot become trusted memory.
-Explicit approval creates HUMAN_APPROVED memory linked to the exact LocalizedSegment revision;
-later edits/review revocation archive it, and approved provenance/identity cannot be rewritten.
-Manual text keeps machineDraft, marks MANUALLY_EDITED and uses optimistic revision conflicts.
-
-LOCALIZE_TRANSCRIPT runs in the separate worker. Draft checkpoints and completed batches
-survive a failure; explicit resume does not repeat completed work. Concurrent resume is claimed
-atomically. Cancellation is checked between calls and before writes; partial runs never report
-COMPLETED. Usage is stored only when returned. UI provides readiness, explicit FusionRun/mode,
-history/progress/activation, paginated issue filters, dense source/Mongolian review, edit and
-per-line approval. Series UI manages profile, characters/aliases/relationships and every
-Glossary scope, and inspects trusted TM. No Approve All or fake rewrite exists.
+The editor provides live Mongolian overlay, requestVideoFrameCallback synchronization with fallback,
+transport/loop controls, virtualized transcript rows, bounded waveform canvas, time-windowed cue DOM,
+zoom, selection/seek, drag/resize, playhead/neighbor/word snapping, split/merge/create/delete, direct
+text autosave, issue navigation, keyboard-safe shortcuts, provenance and proposal-only AI rewrites.
 
 ## Executed evidence
 
-Final local evidence: 136/136 unit/web tests (20 files) and 37/37 integration tests (4 files)
-using real Nest HTTP, PostgreSQL, Redis, BullMQ, storage and FFmpeg. The 8 Phase 04 integration
-cases use an injected deterministic translation provider; the 29 earlier Phase 01–03 cases
-remain green. Lint, all 13 workspace typechecks plus tooling, all three production builds,
-current migration deploy and fresh Phase01→02→03→04 migration apply passed.
-
-A compiled API/worker/Next runtime called the production `openai-responses` adapter against an
-owned loopback deterministic Responses fixture for three English and one Chinese canonical
-line. It checkpointed DRAFT/REVIEW, persisted localization, preserved canonical payloads,
-manually edited/approved one row and explicitly activated the run. This proves the compiled
-HTTP/provider/worker/persistence boundary, not model quality or a real OpenAI call.
-
-Browser validation on production Next confirmed provider readiness, explicit active FusionRun,
-run metrics/history, source/Mongolian rows, approved filter, inline optimistic edit, per-line
-approval→trusted TM, and saved Series profile. Browser console warnings/errors: none.
-
-Deterministic 900-line/30-batch benchmark on this shared Windows host: context build 6 ms,
-initial PostgreSQL persistence 502 ms, worker orchestration+persistence 4,150 ms (worker
-reported 4,042 ms), zero network calls. These numbers are fake-provider/local persistence
-measurements and must not be presented as LLM throughput.
+See `docs/PHASE_05_VALIDATION.md`. Current results include 150/150 unit/web tests (22 files),
+45/45 integration tests (5 files) using real Nest HTTP, PostgreSQL, Redis, BullMQ, storage and media
+tools, and a 1,200-cue real-PostgreSQL benchmark. Browser validation used legal synthetic video and
+confirmed proxy playback, waveform/timeline, selection/provenance, autosave and auditable undo.
 
 ## Environment and limitations
 
-Windows Node 24.15/pnpm 11.25, portable PostgreSQL 56432 and Redis 56379. Existing unrelated
-PostgreSQL 55432 is preserved. Docker Compose remains unverified because of the existing host
-Docker inference-socket failure. Final app/provider processes are stopped; portable infra is
-also stopped at handoff. OneDrive generated-output handling remains a known build concern;
-run build then typecheck sequentially.
+Validated locally on Windows with Node 24.15, pnpm 11.25, portable PostgreSQL/Redis and configured
+FFmpeg. Proxy uses H.264/AAC/yuv420p MP4 (`veryfast`, CRF 23). Only one byte range is supported per
+request. Waveforms are amplitude, not speech boundaries. Snapping is heuristic.
 
-No actual localization-provider credential/model was configured. Provider smoke returned
-`real_localization_smoke_skipped` for both languages. No provider cost, real token usage,
-latency, translation accuracy, чи/та consistency or human Mongolian quality claim was measured.
-The Responses model must support strict structured output. Pricing is deliberately absent.
-
-Quality checks are conservative heuristics: they cannot prove semantic fidelity, Mongolian
-grammar, sarcasm, pronoun/relationship resolution or correct inflection. Exact TM retrieval
-does not implement fuzzy CAT search. Memory creation is manual; no automatic canon discovery.
-Batch resume restarts the incomplete REVIEW call, and an oversized provider draft can require a
-new run with smaller batch settings. Core authentication, production deployment, distributed
-worker recovery, provider account readiness and long-episode paid-provider behavior remain
-unverified.
+AI rewrite was tested with a deterministic provider boundary; absent credentials remain unavailable.
+No final export/render, Phase 06 QC, general video edit, audio edit, collaborative resolution or
+production deployment was implemented.
 
 ## Exact continuation
 
-STOP. Await explicit Phase 05 authorization. Start from the explicitly active COMPLETED
-LocalizationRun and its LocalizedSegments. Preserve machineDraft/currentText, manual revisions,
-confidence reasons, human approval and source TranscriptSegment/FusionRun/SourceSegment paths.
-Phase 05 may add video playback, waveform, subtitle timing clips, drag/resize, split/merge,
-keyboard navigation, autosave and undo/redo. It must not overwrite Phase 04 history or treat AI
-confidence as approval.
+STOP. Await explicit Phase 06 authorization. Continue from the explicitly active SubtitleDocument
+and immutable EditorOperation history. Phase 06 may consume cue warnings/review states for full
+reading-speed, overlap, timing and series consistency QC. Rendering/export and general video editing
+require separate authorization.
 
-Required reads: PROJECT_STATE, HANDOFF, AGENTS, docs/MASTER_SPEC, ARCHITECTURE, ROADMAP,
-DOMAIN_MODEL, PROVIDERS, VALIDATION, PHASE_02_VALIDATION, PHASE_03_VALIDATION,
-PHASE_04_VALIDATION, LOCALIZATION_PIPELINE, FUSION_ALGORITHM and docs/adr/*.
+Required reads: `AGENTS.md`, `PROJECT_STATE.md`, `HANDOFF.md`, `docs/MASTER_SPEC.md`,
+`docs/ARCHITECTURE.md`, `docs/ROADMAP.md`, `docs/DOMAIN_MODEL.md`, `docs/VALIDATION.md`,
+`docs/PHASE_05_VALIDATION.md`, `docs/SUBTITLE_EDITOR_ARCHITECTURE.md` and `docs/adr/*`.

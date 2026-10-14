@@ -1,6 +1,6 @@
 import {describe, expect, it} from 'vitest';
 import {localizationSettingsSchema, localizationRequestSchema} from '../../packages/contracts/src/localization';
-import {assessLocalization, assertLocalizationRequestBudget, buildContextBatches, buildLocalizationPrompt, normalizeMemorySource, type LocalizationSnapshot, type LocalizationSource} from '../../packages/localization/src/index';
+import {assessLocalization, assertLocalizationRequestBudget, buildContextBatches, buildLocalizationPrompt, normalizeMemorySource, type LocalizationSnapshot, type LocalizationSource, type TranslationInput} from '../../packages/localization/src/index';
 
 const source = (sequence: number, text='Hello.'): LocalizationSource => ({id:`s${sequence}`,sequence,text,startMs:sequence*2000,endMs:sequence*2000+1500,speaker:null,confidence:0.95,reviewCategory:'HIGH_CONFIDENCE',reviewStatus:'APPROVED',editRevision:0});
 const snapshot = (): LocalizationSnapshot => ({seriesId:'series',episodeId:'episode',fusionRunId:'fusion',sourceLanguage:'en',profile:{defaultMode:'NATURAL',generalTone:'',setting:'',preferredStyle:'',formalityGuidance:'',nameHandling:'',specialNotes:''},characters:[],relationships:[],glossary:[],translationMemory:[],previousApprovedLines:[]});
@@ -44,6 +44,11 @@ describe('localization contracts and contextual engine',()=>{
     const batch=buildContextBatches([source(0,'Seriously? Leave me.')],snapshot(),localizationSettingsSchema.parse({}))[0]!;
     for(const mode of ['STRICT','NATURAL','CINEMATIC'] as const){const p=buildLocalizationPrompt({phase:'REVIEW',mode,sourceLanguage:'en',batch,drafts:[]});expect(p.system).toContain(mode);expect(p.system).toContain('untrusted');expect(p.system).toContain('negation');expect(p.system).toContain('Seriously');}
     expect(buildLocalizationPrompt({phase:'DRAFT',mode:'NATURAL',sourceLanguage:'en',batch}).system).toContain('DRAFT');
+  });
+  it('builds an editor rewrite proposal prompt around current text without changing targets',()=>{
+    const batch=buildContextBatches([source(0,'I never wanted this.')],snapshot(),localizationSettingsSchema.parse({}))[0]!;
+    const prompt=buildLocalizationPrompt({phase:'REWRITE',mode:'NATURAL',sourceLanguage:'en',batch,rewrite:{action:'MAKE_NATURAL',currentText:'Би үүнийг хүсээгүй.',linkedSourceIds:['s0'],neighborCueTexts:['Өмнөх мөр.']}} as unknown as TranslationInput);
+    expect(prompt.system).toContain('REWRITE');expect(prompt.system).toContain('proposal');expect(prompt.user).toContain('MAKE_NATURAL');expect(prompt.user).toContain('Би үүнийг хүсээгүй.');
   });
   it('bounds the complete provider request including review drafts and prompt instructions',()=>{
     const batch=buildContextBatches([source(0,'Hello.')],snapshot(),localizationSettingsSchema.parse({}))[0]!;
