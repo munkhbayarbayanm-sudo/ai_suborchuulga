@@ -7,7 +7,7 @@ Updated 2026-10-14, Asia/Ulaanbaatar.
 | Current / last authorized phase | Phase 05: professional subtitle editor |
 | Approved Phase 04 baseline | `a0cf1f068c0e48f3be16363f8965247512b4dfc2` |
 | Active branch | `codex/phase-05-subtitle-editor`, created directly from the approved Phase 04 commit |
-| Phase 05 implementation commit | Inspect `git log -2` after handoff commit |
+| Phase 05 implementation commit | `37d2893ee0be9da9bc48274d5ff0b308e888083d` |
 | Merge / push | Neither authorized nor performed |
 | Next phase | Phase 06 requires new explicit authorization |
 | Deployment | Local Windows validation only; Docker host failure remains unresolved |

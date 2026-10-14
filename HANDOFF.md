@@ -1,8 +1,9 @@
 # Phase 05 handoff
 
 Read `PROJECT_STATE.md` first. Branch `codex/phase-05-subtitle-editor` was created directly from
-approved Phase 04 commit `a0cf1f068c0e48f3be16363f8965247512b4dfc2`. Inspect `git log -2` for the
-Phase 05 implementation commit. No merge, push or deployment was performed. Phase 05 is the stop.
+approved Phase 04 commit `a0cf1f068c0e48f3be16363f8965247512b4dfc2`. Phase 05 implementation commit
+is `37d2893ee0be9da9bc48274d5ff0b308e888083d`. No merge, push or deployment was performed.
+Phase 05 is the stop.
 
 ## Windows startup
 
