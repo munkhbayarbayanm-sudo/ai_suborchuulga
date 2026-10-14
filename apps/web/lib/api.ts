@@ -1,4 +1,4 @@
-import { errorSchema, importResultSchema } from '@mongolsub/contracts';
+import { errorSchema, importResultSchema,projectAssetImportResultSchema } from '@mongolsub/contracts';
 
 export const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:4000').replace(/\/$/, '');
 export interface Parser<T> { parse(value: unknown): T }
@@ -65,6 +65,10 @@ export function uploadMedia(episodeId: string, file: File, onProgress: (value: n
     body.append('file', file);
     xhr.send(body);
   });
+}
+
+export function uploadProjectAsset(projectId:string,file:File,onProgress:(value:number)=>void,signal:AbortSignal){
+  return new Promise<ReturnType<typeof projectAssetImportResultSchema.parse>>((resolve,reject)=>{const xhr=new XMLHttpRequest();const abort=()=>xhr.abort();const cleanup=()=>signal.removeEventListener('abort',abort);xhr.open('POST',`${API_URL}/video-projects/${encodeURIComponent(projectId)}/assets`);xhr.timeout=30*60*1000;xhr.upload.onprogress=event=>{if(event.lengthComputable)onProgress(Math.round(event.loaded/event.total*100));};xhr.onload=()=>{cleanup();try{const value=readJson(xhr.responseText);if(xhr.status<200||xhr.status>=300)throw serverError(value,xhr.status);resolve(validate(value,projectAssetImportResultSchema));}catch(error){reject(error);}};xhr.onerror=()=>{cleanup();reject(new ApiError('The asset upload failed. Check the API and try again.','UPLOAD_FAILED'));};xhr.ontimeout=()=>{cleanup();reject(new ApiError('The asset upload timed out.','UPLOAD_TIMEOUT'));};xhr.onabort=()=>{cleanup();reject(new DOMException('Upload cancelled','AbortError'));};signal.addEventListener('abort',abort,{once:true});const body=new FormData();body.append('file',file);xhr.send(body);});
 }
 
 export function errorText(error: unknown) { return error instanceof Error ? error.message : 'Something went wrong. Try again.'; }

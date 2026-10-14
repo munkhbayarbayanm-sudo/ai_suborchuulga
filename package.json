@@ -26,6 +26,7 @@
     "benchmark:localization": "dotenv -e .env -- tsx scripts/localization-benchmark.ts",
     "benchmark:editor": "dotenv -e .env -- tsx scripts/editor-benchmark.ts",
     "benchmark:qc": "dotenv -e .env -- tsx scripts/qc-benchmark.ts",
+    "benchmark:video-editor": "tsx scripts/video-editor-benchmark.ts",
     "db:test:migrations": "dotenv -e .env -- tsx scripts/check-migrations.ts"
   },
   "devDependencies": {

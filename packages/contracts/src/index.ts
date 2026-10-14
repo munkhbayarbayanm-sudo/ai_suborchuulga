@@ -34,3 +34,4 @@ export * from './localization';
 export * from './memory';
 export * from './editor';
 export * from './qc';
+export * from './video-editor';

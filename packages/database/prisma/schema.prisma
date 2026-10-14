@@ -1,22 +1,26 @@
 generator client {
   provider = "prisma-client-js"
 }
+
 datasource db {
   provider = "postgresql"
-  url = env("DATABASE_URL")
+  url      = env("DATABASE_URL")
 }
+
 enum AssetStatus {
   IMPORTED
   INSPECTING
   READY
   FAILED
 }
+
 enum StreamType {
   VIDEO
   AUDIO
   SUBTITLE
   OTHER
 }
+
 enum JobType {
   INSPECT_MEDIA
   EXTRACT_EMBEDDED_SUBTITLE
@@ -35,27 +39,32 @@ enum LocalizationMode {
   NATURAL
   CINEMATIC
 }
+
 enum LocalizationEditState {
   PENDING
   AI_GENERATED
   AI_REVISED
   MANUALLY_EDITED
 }
+
 enum GlossaryScope {
   GLOBAL
   SERIES
   EPISODE
   CHARACTER
 }
+
 enum MemoryStatus {
   ACTIVE
   ARCHIVED
 }
+
 enum TranslationMemoryOrigin {
   HUMAN_APPROVED
   IMPORTED
   AI_SUGGESTED
 }
+
 enum TranslationMemoryStatus {
   TRUSTED
   SUGGESTED
@@ -67,50 +76,60 @@ enum FusionLanguage {
   ENGLISH
   CHINESE
 }
+
 enum ReviewCategory {
   HIGH_CONFIDENCE
   REVIEW_RECOMMENDED
   LIKELY_PROBLEM
 }
+
 enum ReviewStatus {
   UNREVIEWED
   REVIEWED
   APPROVED
 }
+
 enum DerivationType {
   DIRECT
   RECONCILED
   MANUAL
 }
+
 enum EvidenceRole {
   PRIMARY
   SUPPORTING
   TIMING_ONLY
   CONFLICTING
 }
+
 enum ExtractionMethod {
   EMBEDDED_SUBTITLE
   ASR
   OCR
 }
+
 enum DerivativeType {
   AUDIO_MONO_16K
   EDITOR_PROXY_MP4
   WAVEFORM_PEAKS
 }
+
 enum SubtitleDocumentStatus {
   READY
   ARCHIVED
 }
+
 enum SubtitleCueStatus {
   NORMAL
   REVIEW
   APPROVED
 }
+
 enum SubtitleCueOrigin {
   LOCALIZED
   MANUAL
 }
+
 enum EditorOperationType {
   UPDATE_TEXT
   MOVE_CUE
@@ -125,6 +144,7 @@ enum EditorOperationType {
   UNDO
   REDO
 }
+
 enum EditorRewriteAction {
   RETRANSLATE
   MAKE_NATURAL
@@ -133,20 +153,24 @@ enum EditorRewriteAction {
   MORE_CASUAL
   CLOSER_TO_SOURCE
 }
+
 enum EditorProposalStatus {
   PENDING
   ACCEPTED
   REJECTED
   SUPERSEDED
 }
+
 enum EditorPreparationKind {
   EDITOR_PROXY
   WAVEFORM
 }
+
 enum QCRunKind {
   DOCUMENT
   SERIES
 }
+
 enum QCRunStatus {
   QUEUED
   PROCESSING
@@ -155,11 +179,13 @@ enum QCRunStatus {
   CANCELLED
   STALE
 }
+
 enum QCAiMode {
   OFF
   PROBLEMATIC_ONLY
   ALL
 }
+
 enum QCAiStageStatus {
   NOT_REQUESTED
   QUEUED
@@ -168,16 +194,19 @@ enum QCAiStageStatus {
   FAILED
   CANCELLED
 }
+
 enum QCIssueSeverity {
   INFO
   WARNING
   ERROR
 }
+
 enum QCIssueState {
   OPEN
   RESOLVED
   IGNORED
 }
+
 enum QCIssueCategory {
   TIMING
   READABILITY
@@ -185,18 +214,21 @@ enum QCIssueCategory {
   TRANSLATION
   CONSISTENCY
 }
+
 enum QCSuggestionType {
   UPDATE_TEXT
   RESIZE_START
   RESIZE_END
   SPLIT_CUE
 }
+
 enum QCSuggestionStatus {
   PENDING
   APPLIED
   REJECTED
   STALE
 }
+
 enum JobStatus {
   QUEUED
   PROCESSING
@@ -204,474 +236,566 @@ enum JobStatus {
   FAILED
   CANCELLED
 }
-model Series {
-  id String @id @default(uuid()) @db.Uuid
-  title String @db.VarChar(200)
-  description String?
-  sourceLanguage String? @db.VarChar(35)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  episodes Episode[]
-  localizationProfile SeriesLocalizationProfile?
-  characters Character[]
-  relationships CharacterRelationship[]
-  glossary GlossaryEntry[]
-  translationMemory TranslationMemoryEntry[]
-  defaultQcProfileId String? @db.Uuid
-  defaultQcProfile QCProfile? @relation("DefaultQCProfile", fields: [defaultQcProfileId], references: [id], onDelete: SetNull)
-  qcProfiles QCProfile[] @relation("SeriesQCProfiles")
-  qcRuns QCRun[]
+
+enum VideoProjectStatus {
+  READY
+  ARCHIVED
 }
+
+enum VideoTrackType {
+  VIDEO
+  AUDIO
+  IMAGE
+  TEXT
+  SUBTITLE
+  EFFECT
+}
+
+enum ProjectAssetKind {
+  VIDEO
+  AUDIO
+  IMAGE
+}
+
+enum VideoFitMode {
+  FIT
+  FILL
+  STRETCH
+}
+
+enum VisualOverlayType {
+  IMAGE
+  TEXT
+  BLUR
+}
+
+enum VideoEditOperationType {
+  SPLIT_CLIP
+  TRIM_CLIP_START
+  TRIM_CLIP_END
+  MOVE_CLIP
+  DELETE_CLIP
+  SET_LINKED
+  UPDATE_CLIP
+  CREATE_CLIP
+  CREATE_OVERLAY
+  UPDATE_OVERLAY
+  DELETE_OVERLAY
+  UPDATE_TRACK
+  UPDATE_PROJECT
+  UNDO
+  REDO
+}
+
+model Series {
+  id                  String                     @id @default(uuid()) @db.Uuid
+  title               String                     @db.VarChar(200)
+  description         String?
+  sourceLanguage      String?                    @db.VarChar(35)
+  createdAt           DateTime                   @default(now())
+  updatedAt           DateTime                   @updatedAt
+  episodes            Episode[]
+  localizationProfile SeriesLocalizationProfile?
+  characters          Character[]
+  relationships       CharacterRelationship[]
+  glossary            GlossaryEntry[]
+  translationMemory   TranslationMemoryEntry[]
+  defaultQcProfileId  String?                    @db.Uuid
+  defaultQcProfile    QCProfile?                 @relation("DefaultQCProfile", fields: [defaultQcProfileId], references: [id], onDelete: SetNull)
+  qcProfiles          QCProfile[]                @relation("SeriesQCProfiles")
+  qcRuns              QCRun[]
+}
+
 model Episode {
-  id String @id @default(uuid()) @db.Uuid
-  seriesId String @db.Uuid
-  series Series @relation(fields: [seriesId], references: [id], onDelete: Cascade)
-  title String @db.VarChar(200)
-  episodeNumber Int?
-  sourceLanguage String? @db.VarChar(35)
-  activeFusionRunId String? @db.Uuid
-  activeFusionRun FusionRun? @relation("ActiveFusion", fields: [activeFusionRunId, id], references: [id, episodeId], onDelete: NoAction)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  mediaAssets MediaAsset[]
-  jobs ProcessingJob[]
-  extractions SourceExtractionRun[]
-  fusionRuns FusionRun[] @relation("EpisodeFusions")
-  activeLocalizationRunId String? @db.Uuid
-  activeLocalizationRun LocalizationRun? @relation("ActiveLocalization", fields: [activeLocalizationRunId, id], references: [id, episodeId], onDelete: NoAction)
-  localizationRuns LocalizationRun[] @relation("EpisodeLocalizations")
-  activeSubtitleDocumentId String? @db.Uuid
-  activeSubtitleDocument SubtitleDocument? @relation("ActiveSubtitleDocument", fields: [activeSubtitleDocumentId, id], references: [id, episodeId], onDelete: NoAction)
-  subtitleDocuments SubtitleDocument[] @relation("EpisodeSubtitleDocuments")
-  glossary GlossaryEntry[]
+  id                       String                @id @default(uuid()) @db.Uuid
+  seriesId                 String                @db.Uuid
+  series                   Series                @relation(fields: [seriesId], references: [id], onDelete: Cascade)
+  title                    String                @db.VarChar(200)
+  episodeNumber            Int?
+  sourceLanguage           String?               @db.VarChar(35)
+  activeFusionRunId        String?               @db.Uuid
+  activeFusionRun          FusionRun?            @relation("ActiveFusion", fields: [activeFusionRunId, id], references: [id, episodeId], onDelete: NoAction)
+  createdAt                DateTime              @default(now())
+  updatedAt                DateTime              @updatedAt
+  mediaAssets              MediaAsset[]
+  jobs                     ProcessingJob[]
+  extractions              SourceExtractionRun[]
+  fusionRuns               FusionRun[]           @relation("EpisodeFusions")
+  activeLocalizationRunId  String?               @db.Uuid
+  activeLocalizationRun    LocalizationRun?      @relation("ActiveLocalization", fields: [activeLocalizationRunId, id], references: [id, episodeId], onDelete: NoAction)
+  localizationRuns         LocalizationRun[]     @relation("EpisodeLocalizations")
+  activeSubtitleDocumentId String?               @db.Uuid
+  activeSubtitleDocument   SubtitleDocument?     @relation("ActiveSubtitleDocument", fields: [activeSubtitleDocumentId, id], references: [id, episodeId], onDelete: NoAction)
+  subtitleDocuments        SubtitleDocument[]    @relation("EpisodeSubtitleDocuments")
+  activeVideoProjectId     String?               @db.Uuid
+  activeVideoProject       VideoProject?         @relation("ActiveVideoProject", fields: [activeVideoProjectId, id], references: [id, episodeId], onDelete: NoAction)
+  videoProjects            VideoProject[]        @relation("EpisodeVideoProjects")
+  glossary                 GlossaryEntry[]
+
   @@unique([id, seriesId])
   @@index([seriesId])
 }
+
 model MediaAsset {
-  id String @id @default(uuid()) @db.Uuid
-  episodeId String @db.Uuid
-  episode Episode @relation(fields: [episodeId], references: [id], onDelete: Cascade)
-  originalFilename String @db.VarChar(255)
-  storageKey String @unique
-  mimeType String @db.VarChar(100)
-  sizeBytes BigInt
-  durationMs Int?
-  containerFormat String?
-  width Int?
-  height Int?
-  status AssetStatus @default(IMPORTED)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  streams MediaStream[]
-  jobs ProcessingJob[]
-  extractions SourceExtractionRun[]
-  derivatives MediaDerivative[]
-  fusionRuns FusionRun[]
-  subtitleDocuments SubtitleDocument[]
+  id                 String                   @id @default(uuid()) @db.Uuid
+  episodeId          String                   @db.Uuid
+  episode            Episode                  @relation(fields: [episodeId], references: [id], onDelete: Cascade)
+  originalFilename   String                   @db.VarChar(255)
+  storageKey         String                   @unique
+  mimeType           String                   @db.VarChar(100)
+  sizeBytes          BigInt
+  durationMs         Int?
+  containerFormat    String?
+  width              Int?
+  height             Int?
+  status             AssetStatus              @default(IMPORTED)
+  createdAt          DateTime                 @default(now())
+  updatedAt          DateTime                 @updatedAt
+  streams            MediaStream[]
+  jobs               ProcessingJob[]
+  extractions        SourceExtractionRun[]
+  derivatives        MediaDerivative[]
+  fusionRuns         FusionRun[]
+  subtitleDocuments  SubtitleDocument[]
   editorPreparations EditorMediaPreparation[]
+  projectAssets      ProjectAsset[]
+
   @@unique([id, episodeId])
   @@index([episodeId])
 }
+
 model MediaStream {
-  id String @id @default(uuid()) @db.Uuid
-  mediaAssetId String @db.Uuid
-  mediaAsset MediaAsset @relation(fields: [mediaAssetId], references: [id], onDelete: Cascade)
-  streamIndex Int
-  type StreamType
-  codec String?
-  language String?
-  title String?
-  width Int?
-  height Int?
-  frameRate Float?
-  channels Int?
-  sampleRate Int?
-  extractions SourceExtractionRun[]
+  id           String                @id @default(uuid()) @db.Uuid
+  mediaAssetId String                @db.Uuid
+  mediaAsset   MediaAsset            @relation(fields: [mediaAssetId], references: [id], onDelete: Cascade)
+  streamIndex  Int
+  type         StreamType
+  codec        String?
+  language     String?
+  title        String?
+  width        Int?
+  height       Int?
+  frameRate    Float?
+  channels     Int?
+  sampleRate   Int?
+  extractions  SourceExtractionRun[]
+
   @@unique([id, mediaAssetId])
   @@unique([mediaAssetId, streamIndex])
 }
+
 model ProcessingJob {
-  id String @id @default(uuid()) @db.Uuid
-  jobType JobType @default(INSPECT_MEDIA)
-  status JobStatus @default(QUEUED)
-  progress Int @default(0)
-  episodeId String? @db.Uuid
-  episode Episode? @relation(fields: [episodeId], references: [id], onDelete: Cascade)
-  mediaAssetId String? @db.Uuid
-  mediaAsset MediaAsset? @relation(fields: [mediaAssetId], references: [id], onDelete: Cascade)
-  errorCode String?
-  errorMessage String?
-  createdAt DateTime @default(now())
-  startedAt DateTime?
-  completedAt DateTime?
-  updatedAt DateTime @updatedAt
-  extractionRun SourceExtractionRun?
-  fusionRun FusionRun?
-  localizationRun LocalizationRun?
+  id                String                  @id @default(uuid()) @db.Uuid
+  jobType           JobType                 @default(INSPECT_MEDIA)
+  status            JobStatus               @default(QUEUED)
+  progress          Int                     @default(0)
+  episodeId         String?                 @db.Uuid
+  episode           Episode?                @relation(fields: [episodeId], references: [id], onDelete: Cascade)
+  mediaAssetId      String?                 @db.Uuid
+  mediaAsset        MediaAsset?             @relation(fields: [mediaAssetId], references: [id], onDelete: Cascade)
+  errorCode         String?
+  errorMessage      String?
+  createdAt         DateTime                @default(now())
+  startedAt         DateTime?
+  completedAt       DateTime?
+  updatedAt         DateTime                @updatedAt
+  extractionRun     SourceExtractionRun?
+  fusionRun         FusionRun?
+  localizationRun   LocalizationRun?
   editorPreparation EditorMediaPreparation?
-  qcRun QCRun?
+  qcRun             QCRun?
+
   @@index([status, createdAt])
   @@index([episodeId])
   @@index([mediaAssetId])
 }
+
 model SourceExtractionRun {
-  id String @id @default(uuid()) @db.Uuid
-  episodeId String @db.Uuid
-  episode Episode @relation(fields: [episodeId], references: [id], onDelete: Cascade)
-  mediaAssetId String @db.Uuid
-  mediaAsset MediaAsset @relation(fields: [mediaAssetId, episodeId], references: [id, episodeId], onDelete: Cascade)
-  streamId String? @db.Uuid
-  stream MediaStream? @relation(fields: [streamId, mediaAssetId], references: [id, mediaAssetId], onDelete: Restrict)
-  streamIndex Int?
-  method ExtractionMethod
-  provider String @db.VarChar(80)
-  providerVersion String? @db.VarChar(120)
-  modelVersion String? @db.VarChar(200)
-  languageRequested String? @db.VarChar(35)
-  languageDetected String? @db.VarChar(35)
-  status JobStatus @default(QUEUED)
-  settings Json
-  settingsHash String @db.VarChar(64)
-  revision String @default("default") @db.VarChar(36)
-  identityHash String @unique @db.VarChar(64)
-  processingJobId String @unique @db.Uuid
-  processingJob ProcessingJob @relation(fields: [processingJobId], references: [id], onDelete: Cascade)
-  stage String?
-  device String? @db.VarChar(8)
+  id                   String           @id @default(uuid()) @db.Uuid
+  episodeId            String           @db.Uuid
+  episode              Episode          @relation(fields: [episodeId], references: [id], onDelete: Cascade)
+  mediaAssetId         String           @db.Uuid
+  mediaAsset           MediaAsset       @relation(fields: [mediaAssetId, episodeId], references: [id, episodeId], onDelete: Cascade)
+  streamId             String?          @db.Uuid
+  stream               MediaStream?     @relation(fields: [streamId, mediaAssetId], references: [id, mediaAssetId], onDelete: Restrict)
+  streamIndex          Int?
+  method               ExtractionMethod
+  provider             String           @db.VarChar(80)
+  providerVersion      String?          @db.VarChar(120)
+  modelVersion         String?          @db.VarChar(200)
+  languageRequested    String?          @db.VarChar(35)
+  languageDetected     String?          @db.VarChar(35)
+  status               JobStatus        @default(QUEUED)
+  settings             Json
+  settingsHash         String           @db.VarChar(64)
+  revision             String           @default("default") @db.VarChar(36)
+  identityHash         String           @unique @db.VarChar(64)
+  processingJobId      String           @unique @db.Uuid
+  processingJob        ProcessingJob    @relation(fields: [processingJobId], references: [id], onDelete: Cascade)
+  stage                String?
+  device               String?          @db.VarChar(8)
   processingDurationMs Int?
-  startedAt DateTime?
-  completedAt DateTime?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  segments SourceSegment[]
-  fusionInputs FusionRunInput[]
+  startedAt            DateTime?
+  completedAt          DateTime?
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
+  segments             SourceSegment[]
+  fusionInputs         FusionRunInput[]
+
   @@unique([id, mediaAssetId])
   @@index([episodeId, createdAt])
   @@index([mediaAssetId, method])
 }
+
 model SourceSegment {
-  id String @id @default(uuid()) @db.Uuid
-  extractionRunId String @db.Uuid
-  extractionRun SourceExtractionRun @relation(fields: [extractionRunId], references: [id], onDelete: Cascade)
-  startMs Int
-  endMs Int
-  text String
-  language String? @db.VarChar(35)
-  confidence Float?
-  speaker String? @db.VarChar(100)
-  sequence Int
-  words Json @default("[]")
+  id               String                   @id @default(uuid()) @db.Uuid
+  extractionRunId  String                   @db.Uuid
+  extractionRun    SourceExtractionRun      @relation(fields: [extractionRunId], references: [id], onDelete: Cascade)
+  startMs          Int
+  endMs            Int
+  text             String
+  language         String?                  @db.VarChar(35)
+  confidence       Float?
+  speaker          String?                  @db.VarChar(100)
+  sequence         Int
+  words            Json                     @default("[]")
   providerMetadata Json
-  createdAt DateTime @default(now())
-  evidenceLinks TranscriptEvidenceLink[]
+  createdAt        DateTime                 @default(now())
+  evidenceLinks    TranscriptEvidenceLink[]
+
   @@unique([id, extractionRunId])
   @@unique([extractionRunId, sequence])
   @@index([extractionRunId, startMs, sequence])
 }
+
 model MediaDerivative {
-  id String @id @default(uuid()) @db.Uuid
-  mediaAssetId String @db.Uuid
-  mediaAsset MediaAsset @relation(fields: [mediaAssetId], references: [id], onDelete: Cascade)
-  type DerivativeType
-  streamIndex Int
-  storageKey String @unique
-  settings Json
-  settingsHash String @db.VarChar(64)
-  sizeBytes BigInt
-  createdAt DateTime @default(now())
+  id                String                  @id @default(uuid()) @db.Uuid
+  mediaAssetId      String                  @db.Uuid
+  mediaAsset        MediaAsset              @relation(fields: [mediaAssetId], references: [id], onDelete: Cascade)
+  type              DerivativeType
+  streamIndex       Int
+  storageKey        String                  @unique
+  settings          Json
+  settingsHash      String                  @db.VarChar(64)
+  sizeBytes         BigInt
+  createdAt         DateTime                @default(now())
   editorPreparation EditorMediaPreparation?
+
   @@unique([mediaAssetId, type, streamIndex, settingsHash])
 }
 
 model FusionRun {
-  id String @id @default(uuid()) @db.Uuid
-  episodeId String @db.Uuid
-  episode Episode @relation("EpisodeFusions", fields: [episodeId], references: [id], onDelete: Cascade)
-  selectedBy Episode[] @relation("ActiveFusion")
-  mediaAssetId String @db.Uuid
-  mediaAsset MediaAsset @relation(fields: [mediaAssetId, episodeId], references: [id, episodeId], onDelete: Cascade)
-  requestedLanguage FusionLanguage
-  canonicalLanguage String @db.VarChar(2)
-  languageReason String
-  status JobStatus @default(QUEUED)
-  algorithmVersion String @db.VarChar(80)
-  settings Json
-  revision String @default("default") @db.VarChar(36)
-  identityHash String @unique @db.VarChar(64)
-  overallConfidence Float?
-  coverageMetrics Json?
-  processingJobId String @unique @db.Uuid
-  processingJob ProcessingJob @relation(fields: [processingJobId], references: [id], onDelete: Cascade)
-  stage String?
-  alignmentDurationMs Int?
+  id                       String              @id @default(uuid()) @db.Uuid
+  episodeId                String              @db.Uuid
+  episode                  Episode             @relation("EpisodeFusions", fields: [episodeId], references: [id], onDelete: Cascade)
+  selectedBy               Episode[]           @relation("ActiveFusion")
+  mediaAssetId             String              @db.Uuid
+  mediaAsset               MediaAsset          @relation(fields: [mediaAssetId, episodeId], references: [id, episodeId], onDelete: Cascade)
+  requestedLanguage        FusionLanguage
+  canonicalLanguage        String              @db.VarChar(2)
+  languageReason           String
+  status                   JobStatus           @default(QUEUED)
+  algorithmVersion         String              @db.VarChar(80)
+  settings                 Json
+  revision                 String              @default("default") @db.VarChar(36)
+  identityHash             String              @unique @db.VarChar(64)
+  overallConfidence        Float?
+  coverageMetrics          Json?
+  processingJobId          String              @unique @db.Uuid
+  processingJob            ProcessingJob       @relation(fields: [processingJobId], references: [id], onDelete: Cascade)
+  stage                    String?
+  alignmentDurationMs      Int?
   reconciliationDurationMs Int?
-  persistenceDurationMs Int?
-  processingDurationMs Int?
-  startedAt DateTime?
-  completedAt DateTime?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  inputs FusionRunInput[]
-  segments TranscriptSegment[]
-  localizationRuns LocalizationRun[]
+  persistenceDurationMs    Int?
+  processingDurationMs     Int?
+  startedAt                DateTime?
+  completedAt              DateTime?
+  createdAt                DateTime            @default(now())
+  updatedAt                DateTime            @updatedAt
+  inputs                   FusionRunInput[]
+  segments                 TranscriptSegment[]
+  localizationRuns         LocalizationRun[]
+
   @@unique([id, episodeId])
   @@unique([id, mediaAssetId])
   @@index([episodeId, createdAt])
 }
+
 model FusionRunInput {
-  fusionRunId String @db.Uuid
-  sourceExtractionRunId String @db.Uuid
-  mediaAssetId String @db.Uuid
-  fusionRun FusionRun @relation(fields: [fusionRunId, mediaAssetId], references: [id, mediaAssetId], onDelete: Cascade)
-  sourceExtractionRun SourceExtractionRun @relation(fields: [sourceExtractionRunId, mediaAssetId], references: [id, mediaAssetId], onDelete: NoAction)
-  evidenceLinks TranscriptEvidenceLink[]
+  fusionRunId           String                   @db.Uuid
+  sourceExtractionRunId String                   @db.Uuid
+  mediaAssetId          String                   @db.Uuid
+  fusionRun             FusionRun                @relation(fields: [fusionRunId, mediaAssetId], references: [id, mediaAssetId], onDelete: Cascade)
+  sourceExtractionRun   SourceExtractionRun      @relation(fields: [sourceExtractionRunId, mediaAssetId], references: [id, mediaAssetId], onDelete: NoAction)
+  evidenceLinks         TranscriptEvidenceLink[]
+
   @@id([fusionRunId, sourceExtractionRunId])
   @@index([sourceExtractionRunId])
 }
+
 model TranscriptSegment {
-  id String @id @default(uuid()) @db.Uuid
-  fusionRunId String @db.Uuid
-  fusionRun FusionRun @relation(fields: [fusionRunId], references: [id], onDelete: Cascade)
-  sequence Int
-  startMs Int
-  endMs Int
-  text String
-  derivedStartMs Int
-  derivedEndMs Int
-  derivedText String
-  language String @db.VarChar(2)
-  speaker String? @db.VarChar(100)
-  confidence Float
-  reviewCategory ReviewCategory
-  reviewStatus ReviewStatus @default(UNREVIEWED)
-  derivationType DerivationType
-  contentType String @default("UNKNOWN") @db.VarChar(20)
+  id                String                   @id @default(uuid()) @db.Uuid
+  fusionRunId       String                   @db.Uuid
+  fusionRun         FusionRun                @relation(fields: [fusionRunId], references: [id], onDelete: Cascade)
+  sequence          Int
+  startMs           Int
+  endMs             Int
+  text              String
+  derivedStartMs    Int
+  derivedEndMs      Int
+  derivedText       String
+  language          String                   @db.VarChar(2)
+  speaker           String?                  @db.VarChar(100)
+  confidence        Float
+  reviewCategory    ReviewCategory
+  reviewStatus      ReviewStatus             @default(UNREVIEWED)
+  derivationType    DerivationType
+  contentType       String                   @default("UNKNOWN") @db.VarChar(20)
   confidenceReasons Json
-  manualEditedAt DateTime?
-  editRevision Int @default(0)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  evidence TranscriptEvidenceLink[]
-  localizations LocalizedSegment[]
+  manualEditedAt    DateTime?
+  editRevision      Int                      @default(0)
+  createdAt         DateTime                 @default(now())
+  updatedAt         DateTime                 @updatedAt
+  evidence          TranscriptEvidenceLink[]
+  localizations     LocalizedSegment[]
+
   @@unique([id, fusionRunId])
   @@unique([fusionRunId, sequence])
   @@index([fusionRunId, startMs, sequence])
   @@index([fusionRunId, reviewCategory, startMs])
   @@index([fusionRunId, manualEditedAt])
 }
+
 model TranscriptEvidenceLink {
-  transcriptSegmentId String @db.Uuid
-  fusionRunId String @db.Uuid
-  sourceSegmentId String @db.Uuid
-  sourceExtractionRunId String @db.Uuid
-  transcriptSegment TranscriptSegment @relation(fields: [transcriptSegmentId, fusionRunId], references: [id, fusionRunId], onDelete: Cascade)
-  sourceSegment SourceSegment @relation(fields: [sourceSegmentId, sourceExtractionRunId], references: [id, extractionRunId], onDelete: NoAction)
-  input FusionRunInput @relation(fields: [fusionRunId, sourceExtractionRunId], references: [fusionRunId, sourceExtractionRunId], onDelete: NoAction)
-  role EvidenceRole
-  alignmentScore Float
-  textSimilarity Float?
-  temporalOverlap Float
-  contributionWeight Float?
+  transcriptSegmentId   String            @db.Uuid
+  fusionRunId           String            @db.Uuid
+  sourceSegmentId       String            @db.Uuid
+  sourceExtractionRunId String            @db.Uuid
+  transcriptSegment     TranscriptSegment @relation(fields: [transcriptSegmentId, fusionRunId], references: [id, fusionRunId], onDelete: Cascade)
+  sourceSegment         SourceSegment     @relation(fields: [sourceSegmentId, sourceExtractionRunId], references: [id, extractionRunId], onDelete: NoAction)
+  input                 FusionRunInput    @relation(fields: [fusionRunId, sourceExtractionRunId], references: [fusionRunId, sourceExtractionRunId], onDelete: NoAction)
+  role                  EvidenceRole
+  alignmentScore        Float
+  textSimilarity        Float?
+  temporalOverlap       Float
+  contributionWeight    Float?
+
   @@id([transcriptSegmentId, sourceSegmentId])
   @@index([sourceSegmentId])
 }
 
 model SeriesLocalizationProfile {
-  seriesId String @id @db.Uuid
-  series Series @relation(fields: [seriesId], references: [id], onDelete: Cascade)
-  defaultMode LocalizationMode @default(NATURAL)
-  generalTone String @default("")
-  setting String @default("")
-  preferredStyle String @default("")
-  formalityGuidance String @default("")
-  nameHandling String @default("")
-  specialNotes String @default("")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  seriesId          String           @id @db.Uuid
+  series            Series           @relation(fields: [seriesId], references: [id], onDelete: Cascade)
+  defaultMode       LocalizationMode @default(NATURAL)
+  generalTone       String           @default("")
+  setting           String           @default("")
+  preferredStyle    String           @default("")
+  formalityGuidance String           @default("")
+  nameHandling      String           @default("")
+  specialNotes      String           @default("")
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
 }
+
 model Character {
-  id String @id @default(uuid()) @db.Uuid
-  seriesId String @db.Uuid
-  series Series @relation(fields: [seriesId], references: [id], onDelete: Cascade)
-  canonicalName String @db.VarChar(200)
-  sourceName String @db.VarChar(500)
-  mongolianName String? @db.VarChar(500)
-  role String? @db.VarChar(500)
-  title String? @db.VarChar(500)
-  speakingStyle String?
-  formality String? @db.VarChar(500)
-  notes String?
-  aliases CharacterAlias[]
-  relationshipsFrom CharacterRelationship[] @relation("RelationshipFrom")
-  relationshipsTo CharacterRelationship[] @relation("RelationshipTo")
-  glossary GlossaryEntry[]
+  id                String                   @id @default(uuid()) @db.Uuid
+  seriesId          String                   @db.Uuid
+  series            Series                   @relation(fields: [seriesId], references: [id], onDelete: Cascade)
+  canonicalName     String                   @db.VarChar(200)
+  sourceName        String                   @db.VarChar(500)
+  mongolianName     String?                  @db.VarChar(500)
+  role              String?                  @db.VarChar(500)
+  title             String?                  @db.VarChar(500)
+  speakingStyle     String?
+  formality         String?                  @db.VarChar(500)
+  notes             String?
+  aliases           CharacterAlias[]
+  relationshipsFrom CharacterRelationship[]  @relation("RelationshipFrom")
+  relationshipsTo   CharacterRelationship[]  @relation("RelationshipTo")
+  glossary          GlossaryEntry[]
   translationMemory TranslationMemoryEntry[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt         DateTime                 @default(now())
+  updatedAt         DateTime                 @updatedAt
+
   @@unique([id, seriesId])
   @@index([seriesId, canonicalName])
 }
+
 model CharacterAlias {
-  id String @id @default(uuid()) @db.Uuid
-  characterId String @db.Uuid
-  character Character @relation(fields: [characterId], references: [id], onDelete: Cascade)
-  alias String @db.VarChar(200)
+  id          String    @id @default(uuid()) @db.Uuid
+  characterId String    @db.Uuid
+  character   Character @relation(fields: [characterId], references: [id], onDelete: Cascade)
+  alias       String    @db.VarChar(200)
+
   @@unique([characterId, alias])
 }
+
 model CharacterRelationship {
-  id String @id @default(uuid()) @db.Uuid
-  seriesId String @db.Uuid
-  series Series @relation(fields: [seriesId], references: [id], onDelete: Cascade)
-  fromCharacterId String @db.Uuid
-  toCharacterId String @db.Uuid
-  fromCharacter Character @relation("RelationshipFrom", fields: [fromCharacterId, seriesId], references: [id, seriesId], onDelete: Cascade)
-  toCharacter Character @relation("RelationshipTo", fields: [toCharacterId, seriesId], references: [id, seriesId], onDelete: Cascade)
-  type String @db.VarChar(200)
-  notes String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id              String    @id @default(uuid()) @db.Uuid
+  seriesId        String    @db.Uuid
+  series          Series    @relation(fields: [seriesId], references: [id], onDelete: Cascade)
+  fromCharacterId String    @db.Uuid
+  toCharacterId   String    @db.Uuid
+  fromCharacter   Character @relation("RelationshipFrom", fields: [fromCharacterId, seriesId], references: [id, seriesId], onDelete: Cascade)
+  toCharacter     Character @relation("RelationshipTo", fields: [toCharacterId, seriesId], references: [id, seriesId], onDelete: Cascade)
+  type            String    @db.VarChar(200)
+  notes           String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
   @@unique([seriesId, fromCharacterId, toCharacterId, type])
 }
+
 model GlossaryEntry {
-  id String @id @default(uuid()) @db.Uuid
-  scope GlossaryScope
-  seriesId String? @db.Uuid
-  series Series? @relation(fields: [seriesId], references: [id], onDelete: Cascade)
-  episodeId String? @db.Uuid
-  episode Episode? @relation(fields: [episodeId, seriesId], references: [id, seriesId], onDelete: Cascade)
-  characterId String? @db.Uuid
-  character Character? @relation(fields: [characterId, seriesId], references: [id, seriesId], onDelete: Cascade)
-  sourceLanguage String @db.VarChar(2)
-  sourceTerm String @db.VarChar(500)
-  preferredMongolian String @db.VarChar(1000)
-  notes String?
-  caseSensitive Boolean @default(false)
-  status MemoryStatus @default(ACTIVE)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id                 String        @id @default(uuid()) @db.Uuid
+  scope              GlossaryScope
+  seriesId           String?       @db.Uuid
+  series             Series?       @relation(fields: [seriesId], references: [id], onDelete: Cascade)
+  episodeId          String?       @db.Uuid
+  episode            Episode?      @relation(fields: [episodeId, seriesId], references: [id, seriesId], onDelete: Cascade)
+  characterId        String?       @db.Uuid
+  character          Character?    @relation(fields: [characterId, seriesId], references: [id, seriesId], onDelete: Cascade)
+  sourceLanguage     String        @db.VarChar(2)
+  sourceTerm         String        @db.VarChar(500)
+  preferredMongolian String        @db.VarChar(1000)
+  notes              String?
+  caseSensitive      Boolean       @default(false)
+  status             MemoryStatus  @default(ACTIVE)
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+
   @@index([seriesId, sourceLanguage, sourceTerm])
   @@index([scope, status])
 }
+
 model TranslationMemoryEntry {
-  id String @id @default(uuid()) @db.Uuid
-  seriesId String @db.Uuid
-  series Series @relation(fields: [seriesId], references: [id], onDelete: Cascade)
-  sourceLanguage String @db.VarChar(2)
-  sourceText String
-  normalizedSourceText String
-  normalizedSourceHash String @db.VarChar(64)
-  mongolianText String
-  characterId String? @db.Uuid
-  character Character? @relation(fields: [characterId, seriesId], references: [id, seriesId], onDelete: NoAction)
-  origin TranslationMemoryOrigin
-  status TranslationMemoryStatus
-  identityHash String @unique @db.VarChar(64)
-  sourceLocalizedSegmentId String? @db.Uuid
-  sourceLocalizedSegment LocalizedSegment? @relation(fields: [sourceLocalizedSegmentId], references: [id], onDelete: NoAction)
-  sourceRevision Int?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id                       String                  @id @default(uuid()) @db.Uuid
+  seriesId                 String                  @db.Uuid
+  series                   Series                  @relation(fields: [seriesId], references: [id], onDelete: Cascade)
+  sourceLanguage           String                  @db.VarChar(2)
+  sourceText               String
+  normalizedSourceText     String
+  normalizedSourceHash     String                  @db.VarChar(64)
+  mongolianText            String
+  characterId              String?                 @db.Uuid
+  character                Character?              @relation(fields: [characterId, seriesId], references: [id, seriesId], onDelete: NoAction)
+  origin                   TranslationMemoryOrigin
+  status                   TranslationMemoryStatus
+  identityHash             String                  @unique @db.VarChar(64)
+  sourceLocalizedSegmentId String?                 @db.Uuid
+  sourceLocalizedSegment   LocalizedSegment?       @relation(fields: [sourceLocalizedSegmentId], references: [id], onDelete: NoAction)
+  sourceRevision           Int?
+  createdAt                DateTime                @default(now())
+  updatedAt                DateTime                @updatedAt
+
   @@index([seriesId, sourceLanguage])
   @@index([seriesId, sourceLanguage, normalizedSourceHash])
   @@index([sourceLocalizedSegmentId])
 }
+
 model LocalizationRun {
-  id String @id @default(uuid()) @db.Uuid
-  episodeId String @db.Uuid
-  episode Episode @relation("EpisodeLocalizations", fields: [episodeId], references: [id], onDelete: Cascade)
-  selectedBy Episode[] @relation("ActiveLocalization")
-  fusionRunId String @db.Uuid
-  fusionRun FusionRun @relation(fields: [fusionRunId, episodeId], references: [id, episodeId], onDelete: NoAction)
-  sourceLanguage String @db.VarChar(2)
-  targetLanguage String @default("mn") @db.VarChar(2)
-  mode LocalizationMode
-  provider String @db.VarChar(80)
-  model String @db.VarChar(120)
-  providerVersion String? @db.VarChar(120)
-  promptVersion String @db.VarChar(80)
-  pipelineVersion String @db.VarChar(80)
-  settings Json
-  contextSnapshot Json
-  sourceSnapshotHash String @db.VarChar(64)
-  identityHash String @unique @db.VarChar(64)
-  revision String @default("default") @db.VarChar(36)
-  status JobStatus @default(QUEUED)
-  stage String?
-  processingJobId String @unique @db.Uuid
-  processingJob ProcessingJob @relation(fields: [processingJobId], references: [id], onDelete: Cascade)
-  segmentCount Int
-  completedSegmentCount Int @default(0)
-  highConfidenceCount Int @default(0)
-  reviewRecommendedCount Int @default(0)
-  likelyProblemCount Int @default(0)
-  batchCount Int
-  completedBatchCount Int @default(0)
-  inputTokens Int?
-  outputTokens Int?
-  cachedTokens Int?
-  usageComplete Boolean @default(false)
-  estimatedCost Float?
-  processingDurationMs Int?
-  createdAt DateTime @default(now())
-  startedAt DateTime?
-  completedAt DateTime?
-  updatedAt DateTime @updatedAt
-  batches LocalizationBatch[]
-  segments LocalizedSegment[]
-  subtitleDocuments SubtitleDocument[]
+  id                     String              @id @default(uuid()) @db.Uuid
+  episodeId              String              @db.Uuid
+  episode                Episode             @relation("EpisodeLocalizations", fields: [episodeId], references: [id], onDelete: Cascade)
+  selectedBy             Episode[]           @relation("ActiveLocalization")
+  fusionRunId            String              @db.Uuid
+  fusionRun              FusionRun           @relation(fields: [fusionRunId, episodeId], references: [id, episodeId], onDelete: NoAction)
+  sourceLanguage         String              @db.VarChar(2)
+  targetLanguage         String              @default("mn") @db.VarChar(2)
+  mode                   LocalizationMode
+  provider               String              @db.VarChar(80)
+  model                  String              @db.VarChar(120)
+  providerVersion        String?             @db.VarChar(120)
+  promptVersion          String              @db.VarChar(80)
+  pipelineVersion        String              @db.VarChar(80)
+  settings               Json
+  contextSnapshot        Json
+  sourceSnapshotHash     String              @db.VarChar(64)
+  identityHash           String              @unique @db.VarChar(64)
+  revision               String              @default("default") @db.VarChar(36)
+  status                 JobStatus           @default(QUEUED)
+  stage                  String?
+  processingJobId        String              @unique @db.Uuid
+  processingJob          ProcessingJob       @relation(fields: [processingJobId], references: [id], onDelete: Cascade)
+  segmentCount           Int
+  completedSegmentCount  Int                 @default(0)
+  highConfidenceCount    Int                 @default(0)
+  reviewRecommendedCount Int                 @default(0)
+  likelyProblemCount     Int                 @default(0)
+  batchCount             Int
+  completedBatchCount    Int                 @default(0)
+  inputTokens            Int?
+  outputTokens           Int?
+  cachedTokens           Int?
+  usageComplete          Boolean             @default(false)
+  estimatedCost          Float?
+  processingDurationMs   Int?
+  createdAt              DateTime            @default(now())
+  startedAt              DateTime?
+  completedAt            DateTime?
+  updatedAt              DateTime            @updatedAt
+  batches                LocalizationBatch[]
+  segments               LocalizedSegment[]
+  subtitleDocuments      SubtitleDocument[]
+
   @@unique([id, episodeId])
   @@unique([id, fusionRunId])
   @@index([episodeId, createdAt])
 }
+
 model LocalizationBatch {
-  id String @id @default(uuid()) @db.Uuid
-  localizationRunId String @db.Uuid
-  localizationRun LocalizationRun @relation(fields: [localizationRunId], references: [id], onDelete: Cascade)
-  batchIndex Int
-  status JobStatus @default(QUEUED)
-  targetSegmentIds Json
-  draftResults Json?
-  draftUsage Json?
-  reviewUsage Json?
-  errorCode String?
+  id                   String          @id @default(uuid()) @db.Uuid
+  localizationRunId    String          @db.Uuid
+  localizationRun      LocalizationRun @relation(fields: [localizationRunId], references: [id], onDelete: Cascade)
+  batchIndex           Int
+  status               JobStatus       @default(QUEUED)
+  targetSegmentIds     Json
+  draftResults         Json?
+  draftUsage           Json?
+  reviewUsage          Json?
+  errorCode            String?
   processingDurationMs Int?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt            DateTime        @default(now())
+  updatedAt            DateTime        @updatedAt
+
   @@unique([localizationRunId, batchIndex])
 }
+
 model LocalizedSegment {
-  id String @id @default(uuid()) @db.Uuid
-  localizationRunId String @db.Uuid
-  fusionRunId String @db.Uuid
-  localizationRun LocalizationRun @relation(fields: [localizationRunId, fusionRunId], references: [id, fusionRunId], onDelete: Cascade)
-  transcriptSegmentId String @db.Uuid
-  transcriptSegment TranscriptSegment @relation(fields: [transcriptSegmentId, fusionRunId], references: [id, fusionRunId], onDelete: NoAction)
-  sequence Int
-  sourceTextSnapshot String
-  sourceStartMs Int
-  sourceEndMs Int
-  sourceConfidence Float
-  sourceReviewCategory ReviewCategory
-  sourceReviewStatus ReviewStatus
-  sourceEditRevision Int
-  sourceSpeaker String? @db.VarChar(100)
-  machineDraft String?
-  currentText String?
-  providerConfidence Float?
-  confidence Float?
-  confidenceReasons Json @default("[]")
-  reviewClassification ReviewCategory?
-  editState LocalizationEditState @default(PENDING)
-  humanReviewState ReviewStatus @default(UNREVIEWED)
-  revision Int @default(0)
-  characterCount Int?
-  readingLoad Float?
+  id                     String                   @id @default(uuid()) @db.Uuid
+  localizationRunId      String                   @db.Uuid
+  fusionRunId            String                   @db.Uuid
+  localizationRun        LocalizationRun          @relation(fields: [localizationRunId, fusionRunId], references: [id, fusionRunId], onDelete: Cascade)
+  transcriptSegmentId    String                   @db.Uuid
+  transcriptSegment      TranscriptSegment        @relation(fields: [transcriptSegmentId, fusionRunId], references: [id, fusionRunId], onDelete: NoAction)
+  sequence               Int
+  sourceTextSnapshot     String
+  sourceStartMs          Int
+  sourceEndMs            Int
+  sourceConfidence       Float
+  sourceReviewCategory   ReviewCategory
+  sourceReviewStatus     ReviewStatus
+  sourceEditRevision     Int
+  sourceSpeaker          String?                  @db.VarChar(100)
+  machineDraft           String?
+  currentText            String?
+  providerConfidence     Float?
+  confidence             Float?
+  confidenceReasons      Json                     @default("[]")
+  reviewClassification   ReviewCategory?
+  editState              LocalizationEditState    @default(PENDING)
+  humanReviewState       ReviewStatus             @default(UNREVIEWED)
+  revision               Int                      @default(0)
+  characterCount         Int?
+  readingLoad            Float?
   alternativeTranslation String?
-  suggestedLineBreak String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  translationMemory TranslationMemoryEntry[]
-  subtitleCueLinks SubtitleCueSourceLink[]
+  suggestedLineBreak     String?
+  createdAt              DateTime                 @default(now())
+  updatedAt              DateTime                 @updatedAt
+  translationMemory      TranslationMemoryEntry[]
+  subtitleCueLinks       SubtitleCueSourceLink[]
+
   @@unique([id, localizationRunId])
   @@unique([localizationRunId, transcriptSegmentId])
   @@unique([localizationRunId, sequence])
@@ -682,84 +806,253 @@ model LocalizedSegment {
 }
 
 model SubtitleDocument {
-  id String @id @default(uuid()) @db.Uuid
-  episodeId String @db.Uuid
-  episode Episode @relation("EpisodeSubtitleDocuments", fields: [episodeId], references: [id], onDelete: Cascade)
-  selectedBy Episode[] @relation("ActiveSubtitleDocument")
-  mediaAssetId String @db.Uuid
-  mediaAsset MediaAsset @relation(fields: [mediaAssetId, episodeId], references: [id, episodeId], onDelete: NoAction)
-  localizationRunId String @db.Uuid
-  localizationRun LocalizationRun @relation(fields: [localizationRunId, episodeId], references: [id, episodeId], onDelete: NoAction)
-  language String @default("mn") @db.VarChar(2)
-  name String @db.VarChar(200)
-  status SubtitleDocumentStatus @default(READY)
-  editorVersion String @db.VarChar(80)
-  revision Int @default(0)
-  initializationKey String @db.VarChar(36)
-  identityHash String @unique @db.VarChar(64)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  cues SubtitleCue[]
-  operations EditorOperation[] @relation("DocumentOperations")
-  proposals EditorRewriteProposal[]
-  qcRunDocuments QCRunDocument[]
-  qcRuns QCRun[]
+  id                String                  @id @default(uuid()) @db.Uuid
+  episodeId         String                  @db.Uuid
+  episode           Episode                 @relation("EpisodeSubtitleDocuments", fields: [episodeId], references: [id], onDelete: Cascade)
+  selectedBy        Episode[]               @relation("ActiveSubtitleDocument")
+  mediaAssetId      String                  @db.Uuid
+  mediaAsset        MediaAsset              @relation(fields: [mediaAssetId, episodeId], references: [id, episodeId], onDelete: NoAction)
+  localizationRunId String                  @db.Uuid
+  localizationRun   LocalizationRun         @relation(fields: [localizationRunId, episodeId], references: [id, episodeId], onDelete: NoAction)
+  language          String                  @default("mn") @db.VarChar(2)
+  name              String                  @db.VarChar(200)
+  status            SubtitleDocumentStatus  @default(READY)
+  editorVersion     String                  @db.VarChar(80)
+  revision          Int                     @default(0)
+  initializationKey String                  @db.VarChar(36)
+  identityHash      String                  @unique @db.VarChar(64)
+  createdAt         DateTime                @default(now())
+  updatedAt         DateTime                @updatedAt
+  cues              SubtitleCue[]
+  operations        EditorOperation[]       @relation("DocumentOperations")
+  proposals         EditorRewriteProposal[]
+  qcRunDocuments    QCRunDocument[]
+  qcRuns            QCRun[]
+  videoProjects     VideoProject[]          @relation("VideoProjectSubtitleDocument")
+
   @@unique([id, episodeId])
   @@unique([id, localizationRunId])
   @@unique([localizationRunId, initializationKey])
   @@index([episodeId, createdAt])
 }
 
+model VideoProject {
+  id                       String               @id @default(uuid()) @db.Uuid
+  episodeId                String               @db.Uuid
+  episode                  Episode              @relation("EpisodeVideoProjects", fields: [episodeId], references: [id], onDelete: Cascade)
+  selectedBy               Episode[]            @relation("ActiveVideoProject")
+  activeSubtitleDocumentId String?              @db.Uuid
+  activeSubtitleDocument   SubtitleDocument?    @relation("VideoProjectSubtitleDocument", fields: [activeSubtitleDocumentId, episodeId], references: [id, episodeId], onDelete: NoAction)
+  name                     String               @db.VarChar(200)
+  status                   VideoProjectStatus   @default(READY)
+  revision                 Int                  @default(0)
+  initializationKey        String               @db.VarChar(36)
+  canvasWidth              Int
+  canvasHeight             Int
+  frameRate                Float                @default(30)
+  background               String               @default("#000000") @db.VarChar(7)
+  createdAt                DateTime             @default(now())
+  updatedAt                DateTime             @updatedAt
+  tracks                   VideoTrack[]
+  assets                   ProjectAsset[]
+  clips                    VideoClip[]
+  overlays                 VisualOverlay[]
+  operations               VideoEditOperation[] @relation("VideoProjectOperations")
+
+  @@unique([id, episodeId])
+  @@unique([episodeId, initializationKey])
+  @@index([episodeId, createdAt])
+}
+
+model VideoTrack {
+  id             String          @id @default(uuid()) @db.Uuid
+  videoProjectId String          @db.Uuid
+  project        VideoProject    @relation(fields: [videoProjectId], references: [id], onDelete: Cascade)
+  type           VideoTrackType
+  name           String          @db.VarChar(120)
+  order          Int
+  locked         Boolean         @default(false)
+  hidden         Boolean         @default(false)
+  muted          Boolean         @default(false)
+  solo           Boolean         @default(false)
+  clips          VideoClip[]
+  overlays       VisualOverlay[]
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  @@unique([id, videoProjectId])
+  @@unique([videoProjectId, order])
+  @@index([videoProjectId, type, order])
+}
+
+model ProjectAsset {
+  id             String           @id @default(uuid()) @db.Uuid
+  videoProjectId String           @db.Uuid
+  episodeId      String           @db.Uuid
+  project        VideoProject     @relation(fields: [videoProjectId, episodeId], references: [id, episodeId], onDelete: Cascade)
+  mediaAssetId   String           @db.Uuid
+  mediaAsset     MediaAsset       @relation(fields: [mediaAssetId, episodeId], references: [id, episodeId], onDelete: NoAction)
+  kind           ProjectAssetKind
+  name           String           @db.VarChar(240)
+  clips          VideoClip[]
+  overlays       VisualOverlay[]
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  @@unique([id, videoProjectId])
+  @@unique([videoProjectId, mediaAssetId])
+  @@index([videoProjectId, kind, createdAt])
+  @@index([mediaAssetId])
+}
+
+model VideoClip {
+  id              String       @id @default(uuid()) @db.Uuid
+  videoProjectId  String       @db.Uuid
+  project         VideoProject @relation(fields: [videoProjectId], references: [id], onDelete: Cascade)
+  trackId         String       @db.Uuid
+  track           VideoTrack   @relation(fields: [trackId, videoProjectId], references: [id, videoProjectId], onDelete: Cascade)
+  projectAssetId  String       @db.Uuid
+  projectAsset    ProjectAsset @relation(fields: [projectAssetId, videoProjectId], references: [id, videoProjectId], onDelete: NoAction)
+  originClipId    String?      @db.Uuid
+  originClip      VideoClip?   @relation("VideoClipOrigin", fields: [originClipId], references: [id], onDelete: SetNull)
+  derivedClips    VideoClip[]  @relation("VideoClipOrigin")
+  linkGroupId     String?      @db.Uuid
+  timelineStartMs Int
+  sourceInMs      Int
+  sourceOutMs     Int
+  playbackRate    Float        @default(1)
+  fitMode         VideoFitMode @default(FIT)
+  positionX       Float        @default(0.5)
+  positionY       Float        @default(0.5)
+  scaleX          Float        @default(1)
+  scaleY          Float        @default(1)
+  rotationDeg     Float        @default(0)
+  opacity         Float        @default(1)
+  cropX           Float        @default(0)
+  cropY           Float        @default(0)
+  cropWidth       Float        @default(1)
+  cropHeight      Float        @default(1)
+  brightness      Float        @default(1)
+  contrast        Float        @default(1)
+  saturation      Float        @default(1)
+  volume          Float        @default(1)
+  muted           Boolean      @default(false)
+  fadeInMs        Int          @default(0)
+  fadeOutMs       Int          @default(0)
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  @@index([videoProjectId, trackId, timelineStartMs])
+  @@index([videoProjectId, linkGroupId])
+  @@index([projectAssetId])
+}
+
+model VisualOverlay {
+  id              String            @id @default(uuid()) @db.Uuid
+  videoProjectId  String            @db.Uuid
+  project         VideoProject      @relation(fields: [videoProjectId], references: [id], onDelete: Cascade)
+  trackId         String            @db.Uuid
+  track           VideoTrack        @relation(fields: [trackId, videoProjectId], references: [id, videoProjectId], onDelete: Cascade)
+  projectAssetId  String?           @db.Uuid
+  projectAsset    ProjectAsset?     @relation(fields: [projectAssetId, videoProjectId], references: [id, videoProjectId], onDelete: NoAction)
+  type            VisualOverlayType
+  timelineStartMs Int
+  timelineEndMs   Int
+  positionX       Float             @default(0.5)
+  positionY       Float             @default(0.5)
+  width           Float             @default(0.25)
+  height          Float             @default(0.15)
+  rotationDeg     Float             @default(0)
+  opacity         Float             @default(1)
+  text            String?
+  fontFamily      String?           @db.VarChar(80)
+  fontSize        Float?
+  fontWeight      Int?
+  textColor       String?           @db.VarChar(7)
+  alignment       String?           @db.VarChar(12)
+  blurStrength    Float?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  @@index([videoProjectId, trackId, timelineStartMs])
+  @@index([videoProjectId, timelineStartMs, timelineEndMs])
+}
+
+model VideoEditOperation {
+  id                String                 @id @default(uuid()) @db.Uuid
+  videoProjectId    String                 @db.Uuid
+  project           VideoProject           @relation("VideoProjectOperations", fields: [videoProjectId], references: [id], onDelete: Cascade)
+  type              VideoEditOperationType
+  baseRevision      Int
+  resultRevision    Int
+  beforePayload     Json
+  afterPayload      Json
+  targetOperationId String?                @db.Uuid
+  targetOperation   VideoEditOperation?    @relation("VideoEditOperationTarget", fields: [targetOperationId], references: [id], onDelete: NoAction)
+  inverseOperations VideoEditOperation[]   @relation("VideoEditOperationTarget")
+  clientOperationId String?                @db.Uuid
+  groupId           String?                @db.Uuid
+  createdAt         DateTime               @default(now())
+
+  @@unique([videoProjectId, resultRevision])
+  @@unique([videoProjectId, clientOperationId])
+  @@index([videoProjectId, createdAt])
+  @@index([targetOperationId])
+}
+
 model SubtitleCue {
-  id String @id @default(uuid()) @db.Uuid
-  subtitleDocumentId String @db.Uuid
-  localizationRunId String @db.Uuid
-  document SubtitleDocument @relation(fields: [subtitleDocumentId, localizationRunId], references: [id, localizationRunId], onDelete: Cascade)
-  sequence Int
-  startMs Int
-  endMs Int
-  text String
-  status SubtitleCueStatus @default(NORMAL)
-  origin SubtitleCueOrigin @default(LOCALIZED)
-  revision Int @default(0)
-  deletedAt DateTime?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  sourceLinks SubtitleCueSourceLink[]
-  proposals EditorRewriteProposal[]
-  qcIssueLinks QCIssueCueLink[]
+  id                 String                  @id @default(uuid()) @db.Uuid
+  subtitleDocumentId String                  @db.Uuid
+  localizationRunId  String                  @db.Uuid
+  document           SubtitleDocument        @relation(fields: [subtitleDocumentId, localizationRunId], references: [id, localizationRunId], onDelete: Cascade)
+  sequence           Int
+  startMs            Int
+  endMs              Int
+  text               String
+  status             SubtitleCueStatus       @default(NORMAL)
+  origin             SubtitleCueOrigin       @default(LOCALIZED)
+  revision           Int                     @default(0)
+  deletedAt          DateTime?
+  createdAt          DateTime                @default(now())
+  updatedAt          DateTime                @updatedAt
+  sourceLinks        SubtitleCueSourceLink[]
+  proposals          EditorRewriteProposal[]
+  qcIssueLinks       QCIssueCueLink[]
+
   @@index([subtitleDocumentId, deletedAt, sequence])
   @@index([subtitleDocumentId, startMs, endMs])
 }
 
 model SubtitleCueSourceLink {
-  subtitleCueId String @db.Uuid
-  localizedSegmentId String @db.Uuid
-  localizationRunId String @db.Uuid
-  cue SubtitleCue @relation(fields: [subtitleCueId], references: [id], onDelete: Cascade)
-  localizedSegment LocalizedSegment @relation(fields: [localizedSegmentId, localizationRunId], references: [id, localizationRunId], onDelete: NoAction)
-  createdAt DateTime @default(now())
+  subtitleCueId      String           @db.Uuid
+  localizedSegmentId String           @db.Uuid
+  localizationRunId  String           @db.Uuid
+  cue                SubtitleCue      @relation(fields: [subtitleCueId], references: [id], onDelete: Cascade)
+  localizedSegment   LocalizedSegment @relation(fields: [localizedSegmentId, localizationRunId], references: [id, localizationRunId], onDelete: NoAction)
+  createdAt          DateTime         @default(now())
+
   @@id([subtitleCueId, localizedSegmentId])
   @@index([localizedSegmentId])
 }
 
 model EditorOperation {
-  id String @id @default(uuid()) @db.Uuid
-  subtitleDocumentId String @db.Uuid
-  document SubtitleDocument @relation("DocumentOperations", fields: [subtitleDocumentId], references: [id], onDelete: Cascade)
-  type EditorOperationType
-  baseRevision Int
-  resultRevision Int
-  beforePayload Json
-  afterPayload Json
-  targetOperationId String? @db.Uuid
-  targetOperation EditorOperation? @relation("OperationTarget", fields: [targetOperationId], references: [id], onDelete: NoAction)
-  inverseOperations EditorOperation[] @relation("OperationTarget")
-  clientOperationId String? @db.Uuid
-  groupId String? @db.Uuid
-  createdAt DateTime @default(now())
-  acceptedProposal EditorRewriteProposal? @relation("AcceptedProposal")
-  appliedQcSuggestion QCSuggestion? @relation("AppliedQCSuggestion")
+  id                  String                 @id @default(uuid()) @db.Uuid
+  subtitleDocumentId  String                 @db.Uuid
+  document            SubtitleDocument       @relation("DocumentOperations", fields: [subtitleDocumentId], references: [id], onDelete: Cascade)
+  type                EditorOperationType
+  baseRevision        Int
+  resultRevision      Int
+  beforePayload       Json
+  afterPayload        Json
+  targetOperationId   String?                @db.Uuid
+  targetOperation     EditorOperation?       @relation("OperationTarget", fields: [targetOperationId], references: [id], onDelete: NoAction)
+  inverseOperations   EditorOperation[]      @relation("OperationTarget")
+  clientOperationId   String?                @db.Uuid
+  groupId             String?                @db.Uuid
+  createdAt           DateTime               @default(now())
+  acceptedProposal    EditorRewriteProposal? @relation("AcceptedProposal")
+  appliedQcSuggestion QCSuggestion?          @relation("AppliedQCSuggestion")
+
   @@unique([subtitleDocumentId, resultRevision])
   @@unique([subtitleDocumentId, clientOperationId])
   @@index([subtitleDocumentId, createdAt])
@@ -767,140 +1060,146 @@ model EditorOperation {
 }
 
 model EditorRewriteProposal {
-  id String @id @default(uuid()) @db.Uuid
-  subtitleDocumentId String @db.Uuid
-  subtitleCueId String @db.Uuid
-  document SubtitleDocument @relation(fields: [subtitleDocumentId], references: [id], onDelete: Cascade)
-  cue SubtitleCue @relation(fields: [subtitleCueId], references: [id], onDelete: Cascade)
-  action EditorRewriteAction
-  status EditorProposalStatus @default(PENDING)
+  id                   String               @id @default(uuid()) @db.Uuid
+  subtitleDocumentId   String               @db.Uuid
+  subtitleCueId        String               @db.Uuid
+  document             SubtitleDocument     @relation(fields: [subtitleDocumentId], references: [id], onDelete: Cascade)
+  cue                  SubtitleCue          @relation(fields: [subtitleCueId], references: [id], onDelete: Cascade)
+  action               EditorRewriteAction
+  status               EditorProposalStatus @default(PENDING)
   baseDocumentRevision Int
-  currentTextSnapshot String
-  proposalText String
-  provider String @db.VarChar(80)
-  model String @db.VarChar(120)
-  providerVersion String? @db.VarChar(120)
-  confidence Float?
-  notes Json @default("[]")
-  usage Json?
-  acceptedOperationId String? @unique @db.Uuid
-  acceptedOperation EditorOperation? @relation("AcceptedProposal", fields: [acceptedOperationId], references: [id], onDelete: NoAction)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  currentTextSnapshot  String
+  proposalText         String
+  provider             String               @db.VarChar(80)
+  model                String               @db.VarChar(120)
+  providerVersion      String?              @db.VarChar(120)
+  confidence           Float?
+  notes                Json                 @default("[]")
+  usage                Json?
+  acceptedOperationId  String?              @unique @db.Uuid
+  acceptedOperation    EditorOperation?     @relation("AcceptedProposal", fields: [acceptedOperationId], references: [id], onDelete: NoAction)
+  createdAt            DateTime             @default(now())
+  updatedAt            DateTime             @updatedAt
+
   @@index([subtitleCueId, createdAt])
   @@index([subtitleDocumentId, status])
 }
 
 model EditorMediaPreparation {
-  id String @id @default(uuid()) @db.Uuid
-  mediaAssetId String @db.Uuid
-  mediaAsset MediaAsset @relation(fields: [mediaAssetId], references: [id], onDelete: Cascade)
-  kind EditorPreparationKind
-  settings Json
-  settingsHash String @db.VarChar(64)
-  status JobStatus @default(QUEUED)
-  stage String?
-  processingJobId String @unique @db.Uuid
-  processingJob ProcessingJob @relation(fields: [processingJobId], references: [id], onDelete: Cascade)
-  derivativeId String? @unique @db.Uuid
-  derivative MediaDerivative? @relation(fields: [derivativeId], references: [id], onDelete: NoAction)
-  startedAt DateTime?
-  completedAt DateTime?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id              String                @id @default(uuid()) @db.Uuid
+  mediaAssetId    String                @db.Uuid
+  mediaAsset      MediaAsset            @relation(fields: [mediaAssetId], references: [id], onDelete: Cascade)
+  kind            EditorPreparationKind
+  settings        Json
+  settingsHash    String                @db.VarChar(64)
+  status          JobStatus             @default(QUEUED)
+  stage           String?
+  processingJobId String                @unique @db.Uuid
+  processingJob   ProcessingJob         @relation(fields: [processingJobId], references: [id], onDelete: Cascade)
+  derivativeId    String?               @unique @db.Uuid
+  derivative      MediaDerivative?      @relation(fields: [derivativeId], references: [id], onDelete: NoAction)
+  startedAt       DateTime?
+  completedAt     DateTime?
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+
   @@unique([mediaAssetId, kind, settingsHash])
   @@index([status, createdAt])
 }
 
 model QCProfile {
-  id String @id @default(uuid()) @db.Uuid
-  name String @db.VarChar(160)
-  seriesId String? @db.Uuid
-  series Series? @relation("SeriesQCProfiles", fields: [seriesId], references: [id], onDelete: Cascade)
+  id               String   @id @default(uuid()) @db.Uuid
+  name             String   @db.VarChar(160)
+  seriesId         String?  @db.Uuid
+  series           Series?  @relation("SeriesQCProfiles", fields: [seriesId], references: [id], onDelete: Cascade)
   selectedBySeries Series[] @relation("DefaultQCProfile")
-  isSystemDefault Boolean @default(false)
-  isArchived Boolean @default(false)
-  settings Json
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  runs QCRun[]
+  isSystemDefault  Boolean  @default(false)
+  isArchived       Boolean  @default(false)
+  settings         Json
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  runs             QCRun[]
+
   @@index([seriesId, isArchived, name])
 }
 
 model QCRun {
-  id String @id @default(uuid()) @db.Uuid
-  kind QCRunKind
-  subtitleDocumentId String? @db.Uuid
-  subtitleDocument SubtitleDocument? @relation(fields: [subtitleDocumentId], references: [id], onDelete: Cascade)
-  seriesId String? @db.Uuid
-  series Series? @relation(fields: [seriesId], references: [id], onDelete: Cascade)
-  profileId String @db.Uuid
-  profile QCProfile @relation(fields: [profileId], references: [id], onDelete: Restrict)
-  processingJobId String @unique @db.Uuid
-  processingJob ProcessingJob @relation(fields: [processingJobId], references: [id], onDelete: Cascade)
-  documentRevision Int?
-  status QCRunStatus @default(QUEUED)
-  engineVersion String @db.VarChar(80)
-  settingsSnapshot Json
-  identityHash String @unique @db.VarChar(64)
-  revisionKey String @default("default") @db.VarChar(36)
-  aiMode QCAiMode @default(OFF)
-  aiRequired Boolean @default(false)
-  aiStageStatus QCAiStageStatus @default(NOT_REQUESTED)
-  aiProvider String? @db.VarChar(80)
-  aiModel String? @db.VarChar(120)
-  aiPromptVersion String? @db.VarChar(80)
-  stage String @default("Queued") @db.VarChar(160)
-  cueCount Int @default(0)
-  passCount Int @default(0)
-  infoCount Int @default(0)
-  warningCount Int @default(0)
-  errorCount Int @default(0)
-  issueCount Int @default(0)
-  missingActiveDocumentCount Int @default(0)
-  startedAt DateTime?
-  completedAt DateTime?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  documents QCRunDocument[]
-  issues QCIssue[]
+  id                         String            @id @default(uuid()) @db.Uuid
+  kind                       QCRunKind
+  subtitleDocumentId         String?           @db.Uuid
+  subtitleDocument           SubtitleDocument? @relation(fields: [subtitleDocumentId], references: [id], onDelete: Cascade)
+  seriesId                   String?           @db.Uuid
+  series                     Series?           @relation(fields: [seriesId], references: [id], onDelete: Cascade)
+  profileId                  String            @db.Uuid
+  profile                    QCProfile         @relation(fields: [profileId], references: [id], onDelete: Restrict)
+  processingJobId            String            @unique @db.Uuid
+  processingJob              ProcessingJob     @relation(fields: [processingJobId], references: [id], onDelete: Cascade)
+  documentRevision           Int?
+  status                     QCRunStatus       @default(QUEUED)
+  engineVersion              String            @db.VarChar(80)
+  settingsSnapshot           Json
+  identityHash               String            @unique @db.VarChar(64)
+  revisionKey                String            @default("default") @db.VarChar(36)
+  aiMode                     QCAiMode          @default(OFF)
+  aiRequired                 Boolean           @default(false)
+  aiStageStatus              QCAiStageStatus   @default(NOT_REQUESTED)
+  aiProvider                 String?           @db.VarChar(80)
+  aiModel                    String?           @db.VarChar(120)
+  aiPromptVersion            String?           @db.VarChar(80)
+  stage                      String            @default("Queued") @db.VarChar(160)
+  cueCount                   Int               @default(0)
+  passCount                  Int               @default(0)
+  infoCount                  Int               @default(0)
+  warningCount               Int               @default(0)
+  errorCount                 Int               @default(0)
+  issueCount                 Int               @default(0)
+  missingActiveDocumentCount Int               @default(0)
+  startedAt                  DateTime?
+  completedAt                DateTime?
+  createdAt                  DateTime          @default(now())
+  updatedAt                  DateTime          @updatedAt
+  documents                  QCRunDocument[]
+  issues                     QCIssue[]
+
   @@index([subtitleDocumentId, createdAt])
   @@index([seriesId, createdAt])
   @@index([status, createdAt])
 }
 
 model QCRunDocument {
-  qcRunId String @db.Uuid
-  subtitleDocumentId String @db.Uuid
-  episodeId String @db.Uuid
-  documentRevision Int
-  run QCRun @relation(fields: [qcRunId], references: [id], onDelete: Cascade)
-  document SubtitleDocument @relation(fields: [subtitleDocumentId, episodeId], references: [id, episodeId], onDelete: NoAction)
+  qcRunId            String           @db.Uuid
+  subtitleDocumentId String           @db.Uuid
+  episodeId          String           @db.Uuid
+  documentRevision   Int
+  run                QCRun            @relation(fields: [qcRunId], references: [id], onDelete: Cascade)
+  document           SubtitleDocument @relation(fields: [subtitleDocumentId, episodeId], references: [id, episodeId], onDelete: NoAction)
+
   @@id([qcRunId, subtitleDocumentId])
   @@index([subtitleDocumentId, documentRevision])
   @@index([episodeId])
 }
 
 model QCIssue {
-  id String @id @default(uuid()) @db.Uuid
-  qcRunId String @db.Uuid
-  run QCRun @relation(fields: [qcRunId], references: [id], onDelete: Cascade)
-  fingerprint String @db.VarChar(64)
-  type String @db.VarChar(80)
-  category QCIssueCategory
-  severity QCIssueSeverity
-  severityRank Int
-  state QCIssueState @default(OPEN)
-  title String @db.VarChar(300)
-  explanation String
-  metrics Json @default("{}")
-  confidence Float?
+  id            String           @id @default(uuid()) @db.Uuid
+  qcRunId       String           @db.Uuid
+  run           QCRun            @relation(fields: [qcRunId], references: [id], onDelete: Cascade)
+  fingerprint   String           @db.VarChar(64)
+  type          String           @db.VarChar(80)
+  category      QCIssueCategory
+  severity      QCIssueSeverity
+  severityRank  Int
+  state         QCIssueState     @default(OPEN)
+  title         String           @db.VarChar(300)
+  explanation   String
+  metrics       Json             @default("{}")
+  confidence    Float?
   ignoredReason String?
-  resolvedAt DateTime?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  cueLinks QCIssueCueLink[]
-  suggestions QCSuggestion[]
+  resolvedAt    DateTime?
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+  cueLinks      QCIssueCueLink[]
+  suggestions   QCSuggestion[]
+
   @@unique([qcRunId, fingerprint])
   @@index([qcRunId, state, severityRank])
   @@index([qcRunId, category, type])
@@ -908,25 +1207,27 @@ model QCIssue {
 }
 
 model QCIssueCueLink {
-  qcIssueId String @db.Uuid
-  subtitleCueId String @db.Uuid
-  issue QCIssue @relation(fields: [qcIssueId], references: [id], onDelete: Cascade)
-  cue SubtitleCue @relation(fields: [subtitleCueId], references: [id], onDelete: NoAction)
-  isPrimary Boolean @default(false)
+  qcIssueId     String      @db.Uuid
+  subtitleCueId String      @db.Uuid
+  issue         QCIssue     @relation(fields: [qcIssueId], references: [id], onDelete: Cascade)
+  cue           SubtitleCue @relation(fields: [subtitleCueId], references: [id], onDelete: NoAction)
+  isPrimary     Boolean     @default(false)
+
   @@id([qcIssueId, subtitleCueId])
   @@index([subtitleCueId])
 }
 
 model QCSuggestion {
-  id String @id @default(uuid()) @db.Uuid
-  qcIssueId String @db.Uuid
-  issue QCIssue @relation(fields: [qcIssueId], references: [id], onDelete: Cascade)
-  type QCSuggestionType
-  status QCSuggestionStatus @default(PENDING)
-  payload Json
-  appliedEditorOperationId String? @unique @db.Uuid
-  appliedEditorOperation EditorOperation? @relation("AppliedQCSuggestion", fields: [appliedEditorOperationId], references: [id], onDelete: NoAction)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id                       String             @id @default(uuid()) @db.Uuid
+  qcIssueId                String             @db.Uuid
+  issue                    QCIssue            @relation(fields: [qcIssueId], references: [id], onDelete: Cascade)
+  type                     QCSuggestionType
+  status                   QCSuggestionStatus @default(PENDING)
+  payload                  Json
+  appliedEditorOperationId String?            @unique @db.Uuid
+  appliedEditorOperation   EditorOperation?   @relation("AppliedQCSuggestion", fields: [appliedEditorOperationId], references: [id], onDelete: NoAction)
+  createdAt                DateTime           @default(now())
+  updatedAt                DateTime           @updatedAt
+
   @@index([qcIssueId, status])
 }
