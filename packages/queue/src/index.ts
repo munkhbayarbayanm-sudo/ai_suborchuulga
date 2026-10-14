@@ -28,6 +28,7 @@ export async function dispatchPending(db: PrismaClient, queue: Queue<{jobId:stri
         if(result.count && job.jobType===JobType.FUSE_TRANSCRIPT)await tx.fusionRun.updateMany({where:{processingJobId:job.id,status:{in:[JobStatus.QUEUED,JobStatus.PROCESSING]}},data:{status:JobStatus.FAILED,stage:'Failed',completedAt:new Date()}});
         else if(result.count && job.jobType===JobType.LOCALIZE_TRANSCRIPT)await tx.localizationRun.updateMany({where:{processingJobId:job.id,status:{in:[JobStatus.QUEUED,JobStatus.PROCESSING]}},data:{status:JobStatus.FAILED,stage:'Failed',completedAt:new Date()}});
         else if(result.count && (job.jobType===JobType.GENERATE_EDITOR_PROXY||job.jobType===JobType.GENERATE_WAVEFORM))await tx.editorMediaPreparation.updateMany({where:{processingJobId:job.id,status:{in:[JobStatus.QUEUED,JobStatus.PROCESSING]}},data:{status:JobStatus.FAILED,stage:'Failed',completedAt:new Date()}});
+        else if(result.count && (job.jobType===JobType.RUN_SUBTITLE_QC||job.jobType===JobType.RUN_SERIES_QC))await tx.qCRun.updateMany({where:{processingJobId:job.id,status:{in:['QUEUED','PROCESSING']}},data:{status:'FAILED',stage:'Failed',completedAt:new Date()}});
         else if(result.count && job.jobType!==JobType.INSPECT_MEDIA)await tx.sourceExtractionRun.updateMany({where:{processingJobId:job.id,status:{in:[JobStatus.QUEUED,JobStatus.PROCESSING]}},data:{status:JobStatus.FAILED,stage:'Failed',completedAt:new Date()}});
       });
     } else if (job.status === JobStatus.QUEUED) await queue.add(job.jobType, { jobId: job.id }, { jobId: job.id });

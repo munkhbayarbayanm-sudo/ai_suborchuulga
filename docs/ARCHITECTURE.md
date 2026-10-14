@@ -210,3 +210,25 @@ AI rewrite reuses the Phase 04 provider boundary in a REWRITE phase and persists
 accepted editor operation changes cue text. See SUBTITLE_EDITOR_ARCHITECTURE.md and ADR0006.
 
 Phase 05 has no final render/export, general video edit, full QC engine or audio editing.
+
+## Derived Phase 06 subtitle QC flow
+
+QCService creates one document or series QCRun over explicit SubtitleDocument IDs and exact revisions.
+The normalized QCProfile snapshot, engine version, AI mode and rerun identity make the report
+reproducible. QCRunDocument records every input; QCIssueCueLink supports cue pairs, clusters and
+cross-episode findings. Issues have separate severity and human state plus evidence fingerprints.
+
+The `qc` package owns provider-free ordered timing, readability, source/fidelity and memory-driven
+consistency rules. Series checks group by Character and Glossary records instead of whole-series
+all-pairs comparison. A bounded local preview rechecks changed cues plus neighbors without modifying a
+historical report. Full report generation remains a durable worker job with revision recheck and atomic
+final persistence.
+
+Optional linguistic review reuses TranslationProvider only in REVIEW mode. OFF is default;
+PROBLEMATIC_ONLY and ALL use bounded targets and context. Runtime-validated provider findings become
+issues or proposals. Unavailable optional AI never blocks deterministic QC. QC suggestions are applied
+only through EditorService, which also marks prior completed reports stale inside the edit transaction.
+
+The editor renders bounded paginated issue rows and non-color timeline symbols. Series Quality analyzes
+explicit active documents, reports missing active documents and deep-links to the exact document/cue.
+See QC_ENGINE.md and ADR 0007. No Phase 07 editing or final render/export is present.

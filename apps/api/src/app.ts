@@ -12,8 +12,9 @@ import type {TranslationProvider} from '@mongolsub/localization';
 import {LocalizationController} from './localization.controller';
 import {MemoryController} from './memory.controller';
 import {EditorController} from './editor.controller';
+import {QCController} from './qc.controller';
 export async function createApi(config: Config, providers?:ProviderSet, localizationProvider?:TranslationProvider) {
-  @Module({ controllers: [StudioController,SourceController,FusionController,LocalizationController,MemoryController,EditorController], providers: [{ provide: StudioService, useFactory: () => new StudioService(config,providers,localizationProvider) }] })
+  @Module({ controllers: [StudioController,SourceController,FusionController,LocalizationController,MemoryController,EditorController,QCController], providers: [{ provide: StudioService, useFactory: () => new StudioService(config,providers,localizationProvider) }] })
   class ApiModule {}
   const app = await NestFactory.create(ApiModule, { logger: ['error', 'warn', 'log'] });
   const origins = [config.WEB_ORIGIN];

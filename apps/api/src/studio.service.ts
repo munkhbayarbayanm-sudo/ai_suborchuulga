@@ -15,6 +15,7 @@ import type {TranslationProvider} from '@mongolsub/localization';
 import {LocalizationService,localizationProviderFromConfig} from './localization.service';
 import {MemoryService} from './memory.service';
 import {EditorService} from './editor.service';
+import {QCService} from './qc.service';
 export class StudioService {
   readonly db: PrismaClient;
   readonly storage: StorageProvider;
@@ -25,6 +26,7 @@ export class StudioService {
   readonly localizations:LocalizationService;
   readonly memory:MemoryService;
   readonly editor:EditorService;
+  readonly qc:QCService;
   constructor(readonly config: Config, providers:ProviderSet = new HttpProviders(config), localizationProvider?:TranslationProvider) {
     this.db = new PrismaClient({ datasourceUrl: config.DATABASE_URL });
     this.storage = new LocalStorage(config.STORAGE_ROOT);
@@ -35,6 +37,7 @@ export class StudioService {
     const resolvedLocalizationProvider=localizationProvider??localizationProviderFromConfig(config);
     this.localizations=new LocalizationService(this.db,resolvedLocalizationProvider);
     this.editor=new EditorService(this.db,this.storage,config,resolvedLocalizationProvider);
+    this.qc=new QCService(this.db,this.editor);
   }
   async onModuleDestroy() { await this.queue.close(); this.redis.disconnect(); await this.db.$disconnect(); }
   async listSeries() { return (await this.db.series.findMany({ orderBy: { updatedAt: 'desc' }, take: 1000 })).map(toSeries); }

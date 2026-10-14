@@ -1,6 +1,7 @@
 # Validation evidence
 
-Current Phase05 evidence: [PHASE_05_VALIDATION.md](PHASE_05_VALIDATION.md).
+Current Phase06 evidence: [PHASE_06_VALIDATION.md](PHASE_06_VALIDATION.md).
+Phase05 historical evidence: [PHASE_05_VALIDATION.md](PHASE_05_VALIDATION.md).
 Phase04 historical evidence: [PHASE_04_VALIDATION.md](PHASE_04_VALIDATION.md).
 Phase03 historical evidence: [PHASE_03_VALIDATION.md](PHASE_03_VALIDATION.md).
 Phase02 historical evidence: [PHASE_02_VALIDATION.md](PHASE_02_VALIDATION.md).
@@ -10,6 +11,7 @@ browser checks and unverified environment gates.
 Phase03 implementation commit: `b1a3b90162c6b77a6e1aee37f85c2f8c1c586f3a`.
 Phase04 was based directly on approved Phase03 `a195a3f31a1f2ad177394ec2b390802175e0896a`.
 Phase05 was based directly on approved Phase04 `a0cf1f068c0e48f3be16363f8965247512b4dfc2`.
+Phase06 was based directly on approved Phase05 `04fba34fdce43f6ee011aa7638626df6a7ba8e1f`.
 Current HEAD after handoff is the final continuity commit; inspect `git log -2`.
 
 # Historical Phase 01 validation — 2026-10-13 (Asia/Ulaanbaatar)

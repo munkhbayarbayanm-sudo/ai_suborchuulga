@@ -26,6 +26,8 @@ enum JobType {
   LOCALIZE_TRANSCRIPT
   GENERATE_EDITOR_PROXY
   GENERATE_WAVEFORM
+  RUN_SUBTITLE_QC
+  RUN_SERIES_QC
 }
 
 enum LocalizationMode {
@@ -141,6 +143,60 @@ enum EditorPreparationKind {
   EDITOR_PROXY
   WAVEFORM
 }
+enum QCRunKind {
+  DOCUMENT
+  SERIES
+}
+enum QCRunStatus {
+  QUEUED
+  PROCESSING
+  COMPLETED
+  FAILED
+  CANCELLED
+  STALE
+}
+enum QCAiMode {
+  OFF
+  PROBLEMATIC_ONLY
+  ALL
+}
+enum QCAiStageStatus {
+  NOT_REQUESTED
+  QUEUED
+  COMPLETED
+  UNAVAILABLE
+  FAILED
+  CANCELLED
+}
+enum QCIssueSeverity {
+  INFO
+  WARNING
+  ERROR
+}
+enum QCIssueState {
+  OPEN
+  RESOLVED
+  IGNORED
+}
+enum QCIssueCategory {
+  TIMING
+  READABILITY
+  LANGUAGE
+  TRANSLATION
+  CONSISTENCY
+}
+enum QCSuggestionType {
+  UPDATE_TEXT
+  RESIZE_START
+  RESIZE_END
+  SPLIT_CUE
+}
+enum QCSuggestionStatus {
+  PENDING
+  APPLIED
+  REJECTED
+  STALE
+}
 enum JobStatus {
   QUEUED
   PROCESSING
@@ -161,6 +217,10 @@ model Series {
   relationships CharacterRelationship[]
   glossary GlossaryEntry[]
   translationMemory TranslationMemoryEntry[]
+  defaultQcProfileId String? @db.Uuid
+  defaultQcProfile QCProfile? @relation("DefaultQCProfile", fields: [defaultQcProfileId], references: [id], onDelete: SetNull)
+  qcProfiles QCProfile[] @relation("SeriesQCProfiles")
+  qcRuns QCRun[]
 }
 model Episode {
   id String @id @default(uuid()) @db.Uuid
@@ -249,6 +309,7 @@ model ProcessingJob {
   fusionRun FusionRun?
   localizationRun LocalizationRun?
   editorPreparation EditorMediaPreparation?
+  qcRun QCRun?
   @@index([status, createdAt])
   @@index([episodeId])
   @@index([mediaAssetId])
@@ -641,6 +702,8 @@ model SubtitleDocument {
   cues SubtitleCue[]
   operations EditorOperation[] @relation("DocumentOperations")
   proposals EditorRewriteProposal[]
+  qcRunDocuments QCRunDocument[]
+  qcRuns QCRun[]
   @@unique([id, episodeId])
   @@unique([id, localizationRunId])
   @@unique([localizationRunId, initializationKey])
@@ -664,6 +727,7 @@ model SubtitleCue {
   updatedAt DateTime @updatedAt
   sourceLinks SubtitleCueSourceLink[]
   proposals EditorRewriteProposal[]
+  qcIssueLinks QCIssueCueLink[]
   @@index([subtitleDocumentId, deletedAt, sequence])
   @@index([subtitleDocumentId, startMs, endMs])
 }
@@ -695,6 +759,7 @@ model EditorOperation {
   groupId String? @db.Uuid
   createdAt DateTime @default(now())
   acceptedProposal EditorRewriteProposal? @relation("AcceptedProposal")
+  appliedQcSuggestion QCSuggestion? @relation("AppliedQCSuggestion")
   @@unique([subtitleDocumentId, resultRevision])
   @@unique([subtitleDocumentId, clientOperationId])
   @@index([subtitleDocumentId, createdAt])
@@ -745,4 +810,123 @@ model EditorMediaPreparation {
   updatedAt DateTime @updatedAt
   @@unique([mediaAssetId, kind, settingsHash])
   @@index([status, createdAt])
+}
+
+model QCProfile {
+  id String @id @default(uuid()) @db.Uuid
+  name String @db.VarChar(160)
+  seriesId String? @db.Uuid
+  series Series? @relation("SeriesQCProfiles", fields: [seriesId], references: [id], onDelete: Cascade)
+  selectedBySeries Series[] @relation("DefaultQCProfile")
+  isSystemDefault Boolean @default(false)
+  isArchived Boolean @default(false)
+  settings Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  runs QCRun[]
+  @@index([seriesId, isArchived, name])
+}
+
+model QCRun {
+  id String @id @default(uuid()) @db.Uuid
+  kind QCRunKind
+  subtitleDocumentId String? @db.Uuid
+  subtitleDocument SubtitleDocument? @relation(fields: [subtitleDocumentId], references: [id], onDelete: Cascade)
+  seriesId String? @db.Uuid
+  series Series? @relation(fields: [seriesId], references: [id], onDelete: Cascade)
+  profileId String @db.Uuid
+  profile QCProfile @relation(fields: [profileId], references: [id], onDelete: Restrict)
+  processingJobId String @unique @db.Uuid
+  processingJob ProcessingJob @relation(fields: [processingJobId], references: [id], onDelete: Cascade)
+  documentRevision Int?
+  status QCRunStatus @default(QUEUED)
+  engineVersion String @db.VarChar(80)
+  settingsSnapshot Json
+  identityHash String @unique @db.VarChar(64)
+  revisionKey String @default("default") @db.VarChar(36)
+  aiMode QCAiMode @default(OFF)
+  aiRequired Boolean @default(false)
+  aiStageStatus QCAiStageStatus @default(NOT_REQUESTED)
+  aiProvider String? @db.VarChar(80)
+  aiModel String? @db.VarChar(120)
+  aiPromptVersion String? @db.VarChar(80)
+  stage String @default("Queued") @db.VarChar(160)
+  cueCount Int @default(0)
+  passCount Int @default(0)
+  infoCount Int @default(0)
+  warningCount Int @default(0)
+  errorCount Int @default(0)
+  issueCount Int @default(0)
+  missingActiveDocumentCount Int @default(0)
+  startedAt DateTime?
+  completedAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  documents QCRunDocument[]
+  issues QCIssue[]
+  @@index([subtitleDocumentId, createdAt])
+  @@index([seriesId, createdAt])
+  @@index([status, createdAt])
+}
+
+model QCRunDocument {
+  qcRunId String @db.Uuid
+  subtitleDocumentId String @db.Uuid
+  episodeId String @db.Uuid
+  documentRevision Int
+  run QCRun @relation(fields: [qcRunId], references: [id], onDelete: Cascade)
+  document SubtitleDocument @relation(fields: [subtitleDocumentId, episodeId], references: [id, episodeId], onDelete: NoAction)
+  @@id([qcRunId, subtitleDocumentId])
+  @@index([subtitleDocumentId, documentRevision])
+  @@index([episodeId])
+}
+
+model QCIssue {
+  id String @id @default(uuid()) @db.Uuid
+  qcRunId String @db.Uuid
+  run QCRun @relation(fields: [qcRunId], references: [id], onDelete: Cascade)
+  fingerprint String @db.VarChar(64)
+  type String @db.VarChar(80)
+  category QCIssueCategory
+  severity QCIssueSeverity
+  severityRank Int
+  state QCIssueState @default(OPEN)
+  title String @db.VarChar(300)
+  explanation String
+  metrics Json @default("{}")
+  confidence Float?
+  ignoredReason String?
+  resolvedAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  cueLinks QCIssueCueLink[]
+  suggestions QCSuggestion[]
+  @@unique([qcRunId, fingerprint])
+  @@index([qcRunId, state, severityRank])
+  @@index([qcRunId, category, type])
+  @@index([fingerprint])
+}
+
+model QCIssueCueLink {
+  qcIssueId String @db.Uuid
+  subtitleCueId String @db.Uuid
+  issue QCIssue @relation(fields: [qcIssueId], references: [id], onDelete: Cascade)
+  cue SubtitleCue @relation(fields: [subtitleCueId], references: [id], onDelete: NoAction)
+  isPrimary Boolean @default(false)
+  @@id([qcIssueId, subtitleCueId])
+  @@index([subtitleCueId])
+}
+
+model QCSuggestion {
+  id String @id @default(uuid()) @db.Uuid
+  qcIssueId String @db.Uuid
+  issue QCIssue @relation(fields: [qcIssueId], references: [id], onDelete: Cascade)
+  type QCSuggestionType
+  status QCSuggestionStatus @default(PENDING)
+  payload Json
+  appliedEditorOperationId String? @unique @db.Uuid
+  appliedEditorOperation EditorOperation? @relation("AppliedQCSuggestion", fields: [appliedEditorOperationId], references: [id], onDelete: NoAction)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([qcIssueId, status])
 }

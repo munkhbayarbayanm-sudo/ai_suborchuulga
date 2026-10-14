@@ -77,6 +77,9 @@ importers:
       '@mongolsub/media':
         specifier: workspace:*
         version: link:../../packages/media
+      '@mongolsub/qc':
+        specifier: workspace:*
+        version: link:../../packages/qc
       '@mongolsub/queue':
         specifier: workspace:*
         version: link:../../packages/queue
@@ -178,6 +181,9 @@ importers:
       '@mongolsub/media':
         specifier: workspace:*
         version: link:../../packages/media
+      '@mongolsub/qc':
+        specifier: workspace:*
+        version: link:../../packages/qc
       '@mongolsub/queue':
         specifier: workspace:*
         version: link:../../packages/queue
@@ -280,6 +286,19 @@ importers:
       zod:
         specifier: ^3.25.0
         version: 3.25.76
+
+  packages/qc:
+    dependencies:
+      '@mongolsub/domain':
+        specifier: workspace:*
+        version: link:../domain
+      zod:
+        specifier: ^3.25.0
+        version: 3.25.76
+    devDependencies:
+      typescript:
+        specifier: ^5.9.0
+        version: 5.9.3
 
   packages/queue:
     dependencies:

@@ -33,3 +33,4 @@ export * from './fusion';
 export * from './localization';
 export * from './memory';
 export * from './editor';
+export * from './qc';

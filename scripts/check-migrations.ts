@@ -4,8 +4,8 @@ import { resolve } from 'node:path';
 import { PrismaClient } from '../packages/database/src/index';
 
 const admin = new PrismaClient();
-const schema = `phase05_migrate_${randomUUID().replaceAll('-', '')}`;
-if (!/^phase05_migrate_[a-f0-9]{32}$/.test(schema)) throw new Error('Unsafe migration fixture schema');
+const schema = `phase06_migrate_${randomUUID().replaceAll('-', '')}`;
+if (!/^phase06_migrate_[a-f0-9]{32}$/.test(schema)) throw new Error('Unsafe migration fixture schema');
 
 const url = new URL(process.env.DATABASE_URL ?? '');
 url.searchParams.set('schema', schema);

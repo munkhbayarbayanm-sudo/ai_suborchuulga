@@ -129,3 +129,27 @@ duplicate edits. Media preparation is unique by source asset+kind+settings hash.
 
 No final export/render, full Phase 06 QC entity, general video edit, effect, cut/trim or audio edit was
 added. Those require future authorization.
+
+## Revision-bound subtitle quality control
+
+| Entity | Purpose / invariants |
+|---|---|
+| QCProfile | System/global or series settings for timing, readability, gaps, density, untranslated detection and default AI mode |
+| QCRun | Historical DOCUMENT/SERIES analysis, profile/settings/engine/AI snapshot, durable job, stage/counts and terminal or STALE state |
+| QCRunDocument | Exact document ID, episode ID and revision included in one run |
+| QCIssue | Fingerprinted typed finding with category, severity, independent OPEN/RESOLVED/IGNORED state, metrics and optional confidence |
+| QCIssueCueLink | Many-to-many issue evidence for one cue, adjacent timing pair, cluster or cross-episode consistency finding |
+| QCSuggestion | Non-destructive typed text/timing/split proposal with pending/applied/rejected/stale decision and optional EditorOperation audit link |
+
+Run identity covers kind, owner, sorted document revisions, profile/settings, engine version, AI request
+and default or caller rerun key. QCRunDocument composite ownership prevents a run from silently referring
+to another Episode. Issue ordering uses persisted severity rank then stable creation/id order. Indexes
+serve run/state/severity, category/type, fingerprint, cue reverse lookup and suggestion state.
+
+Every EditorOperation affecting a run input changes the document revision and marks completed reports
+STALE. It never rewrites issue history. Ignored state transfers only to a new issue with the same
+fingerprint. Local preview is transient and bounded; it is not a QCRun. Accepted suggestions use the
+existing optimistic EditorOperation API, preserving audit and undo.
+
+Phase 06 does not alter Phase 02 source evidence, Phase 03 canonical transcripts, Phase 04 localization
+or Phase 05 history. No general video editing, final subtitle/video export or render entity was added.

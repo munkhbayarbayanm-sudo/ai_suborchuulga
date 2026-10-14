@@ -23,6 +23,7 @@
     "@mongolsub/contracts": "workspace:*",
     "@mongolsub/fusion": "workspace:*",
     "@mongolsub/localization": "workspace:*",
-    "@mongolsub/editor": "workspace:*"
+    "@mongolsub/editor": "workspace:*",
+    "@mongolsub/qc": "workspace:*"
   }
 }
