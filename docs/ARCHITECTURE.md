@@ -21,6 +21,8 @@ Runtime-validated metadata is persisted transactionally with final job status.
 `queue` owns Redis/BullMQ transport and durable dispatch. `extraction` owns subtitle
 parsing, safe normalization/sampling, within-OCR grouping and provider boundaries.
 `fusion` owns deterministic language summaries, bounded alignment and reconciliation.
+`localization` owns bounded context selection, versioned prompts, structured provider
+validation and deterministic review signals.
 UI primitives remain inside web. Optional Python providers are separate from core boot.
 
 ## Import and job flow
@@ -71,9 +73,9 @@ installed for `node dist/main.js`. This is not a standalone deployment image.
 
 Series declared language is extensible and independent of stream language tags.
 Streams preserve source codec/language/title/index; future extraction can reference
-asset+stream provenance. Future subtitle revisions/manual approvals, memory,
-edit operations and undo history must be separate entities, not mutations of
-original media. Translation and professional editing remain future phases.
+asset+stream provenance. Subtitle revisions/manual approvals, memory and localization
+are separate entities, not mutations of original media or source evidence. Professional
+timeline editing, undo history and render/export remain future phases.
 
 ## Independent Phase 02 source flow
 
@@ -146,4 +148,42 @@ allows simple millisecond/text/review edits. Phase03 polling schedules after req
 Known limits: bounded windows and family comparisons cannot solve global drift, semantic
 ambiguity, Chinese script conversion or unknown-language lexical reconciliation. Coverage
 describes evidence intervals, not speech/translation completeness. Manual edits leave algorithm
-summary/confidence as a labelled completion snapshot. No professional editor/translation exists.
+summary/confidence as a labelled completion snapshot.
+
+## Derived Phase 04 localization flow
+
+LocalizationService accepts one explicit completed English or Chinese FusionRun. Run
+creation snapshots every canonical source row plus relevant Series profile, owned
+characters/relationships, scoped active glossary, exact trusted Translation Memory and
+nearby approved lines. The active FusionRun is only a UI default. A SHA256 identity
+deduplicates repeated clicks; a caller UUID creates an intentional historical rerun.
+Episode.activeLocalizationRunId changes only through an explicit completed-run action.
+
+LOCALIZE_TRANSCRIPT uses the existing durable PostgreSQL/BullMQ worker. The worker runs
+bounded DRAFT and REVIEW calls for each persisted batch. Default target batches contain
+20 rows and five context rows on each side. Context payload and complete provider request
+have separate validated character limits. Drafts and provider usage are checkpointed;
+failed runs can resume remaining review/batches without duplicating completed output.
+Cancellation is observed between calls and before persistence, and a run becomes COMPLETED
+only after all batches finish.
+
+TranslationProvider isolates the initial configurable OpenAI Responses adapter. Requests
+use versioned system/user prompts and strict structured output. Every target ID must appear
+exactly once; unknown, missing, duplicate, invalid-language or malformed results fail that
+batch. Provider secrets remain server-side. Authentication/schema/configuration failures
+are terminal; timeout, 408, 429 and 5xx use bounded retry. Unavailable or disabled localization
+does not prevent Phases 01–03 from booting.
+
+Each LocalizedSegment is a 1:1 derived record with a frozen source snapshot, first
+machineDraft, currentText, product confidence/reasons, edit state, independent human
+review state and optimistic revision. Manual text is never overwritten by reruns. Approval
+creates revision-linked HUMAN_APPROVED Translation Memory; changing that localized revision
+archives its trusted memory rather than changing provenance. Imported trusted memory is
+explicit, and AI_SUGGESTED memory cannot be trusted automatically.
+
+Deterministic review checks propagate source risk and conservatively flag numbers,
+negation, selected glossary terms, explicitly known names and reading load. Provider
+semantic issues can force review or LIKELY_PROBLEM. Confidence is an explainable product
+score, not calibrated probability or human approval. No permanent character/relationship
+canon is inferred by AI. Phase 04 has dense paginated review and small memory forms, without
+timeline/waveform, timing edits, split/merge, video operations or final QC.

@@ -33,3 +33,4 @@ export type TranscriptSegmentDto=z.infer<typeof transcriptSegmentSchema>;
 export type TranscriptDetailDto=z.infer<typeof transcriptDetailSchema>;
 export type EvidenceRole=z.infer<typeof evidenceRoleSchema>;
 export type ReviewCategory=z.infer<typeof reviewCategorySchema>;
+export type ReviewStatus=z.infer<typeof reviewStatusSchema>;

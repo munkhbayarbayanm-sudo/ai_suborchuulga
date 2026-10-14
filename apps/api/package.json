@@ -28,7 +28,8 @@
     "bullmq": "^5.63.0",
     "ioredis": "^5.8.0",
     "@mongolsub/extraction": "workspace:*",
-    "@mongolsub/fusion": "workspace:*"
+    "@mongolsub/fusion": "workspace:*",
+    "@mongolsub/localization": "workspace:*"
   },
   "devDependencies": {
     "@types/busboy": "^1.5.4",

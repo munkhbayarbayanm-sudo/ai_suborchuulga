@@ -219,3 +219,36 @@ Transient inference/OOM errors fail their individual run and leave readiness usa
 for intentional reruns. Model/dependency loading failures latch unavailable until
 configuration/restart. Node distinguishes SOURCE_TIMEOUT and sends bounded provider
 cancellation after failed inference; active library calls remain cooperative.
+
+## Phase 04 localization provider
+
+Mongolian localization uses the TypeScript `TranslationProvider` boundary in
+`packages/localization`; it does not run inside the extraction Python service. The initial
+real adapter calls the OpenAI Responses API with a strict JSON schema. Configure these
+server/worker-only values in the private environment:
+
+```text
+LOCALIZATION_PROVIDER=openai
+LOCALIZATION_API_KEY=<private key>
+LOCALIZATION_MODEL=<configured Responses-compatible model>
+LOCALIZATION_BASE_URL=https://api.openai.com/v1
+```
+
+Timeout, maximum output tokens, attempts and retry backoff are validated settings. The
+base URL requires HTTPS except for loopback development. Keys and authorization headers
+never enter browser contracts or logs. `LOCALIZATION_PROVIDER=disabled`, a missing key or
+missing model reports UNAVAILABLE/MISCONFIGURED; API, media extraction and transcript fusion
+continue to boot.
+
+Each batch makes a versioned DRAFT call and a REVIEW call. Responses are untrusted: exact
+target IDs, one row per target, typed issues, bounds and Mongolian Cyrillic are runtime
+validated. Refusal, authentication, configuration, malformed schema, unknown/duplicate/
+missing IDs and rejected requests do not retry. Network failure, timeout, HTTP 408/429 and
+5xx use bounded retry. The complete prompt plus review drafts is checked against the run's
+provider-request character limit before each call.
+
+Normal tests and benchmarks use explicitly labelled deterministic providers and never incur
+paid calls. Run `pnpm test:smoke:localization` for a tiny original English and Chinese real
+provider smoke only when valid key/model configuration is present; otherwise it reports a
+machine-readable skip. No copyrighted episode transcript is used. See
+`LOCALIZATION_PIPELINE.md` and ADR0005 for context, memory and versioning rules.

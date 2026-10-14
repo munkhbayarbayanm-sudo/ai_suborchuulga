@@ -21,6 +21,7 @@
     "ioredis": "^5.8.0",
     "@mongolsub/extraction": "workspace:*",
     "@mongolsub/contracts": "workspace:*",
-    "@mongolsub/fusion": "workspace:*"
+    "@mongolsub/fusion": "workspace:*",
+    "@mongolsub/localization": "workspace:*"
   }
 }

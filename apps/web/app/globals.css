@@ -346,3 +346,51 @@ progress::-moz-progress-bar { background: var(--color-accent); }
 .fusion-panel .button { white-space: normal; }
 @media (max-width: 1000px) { .fusion-metrics { grid-template-columns: repeat(3, minmax(0, 1fr)); } .fusion-edit-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .fusion-edit-grid > .field:last-child { grid-column: 1 / -1; } }
 @media (max-width: 767px) { .fusion-panel { order: 4; } .editor-reserve { order: 5; } .fusion-inputs { padding: var(--space-md); } .fusion-evidence-grid { grid-template-columns: minmax(0, 1fr); } .fusion-metrics, .fusion-settings-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .fusion-transcript .source-list-heading > .field { width: 100%; } .fusion-metrics strong { font-size: var(--text-base); } }
+
+.localization-panel { grid-column: 1 / -1; }
+.localization-create { padding: var(--space-lg); }
+.localization-form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-lg); margin-bottom: var(--space-lg); }
+.localization-create > .button { margin-top: var(--space-md); }
+.localization-metrics { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: var(--space-md); padding: var(--space-lg) 0; }
+.localization-metrics div { border-left: 2px solid var(--color-rule); padding-left: var(--space-md); }
+.localization-metrics span { display: block; color: var(--color-muted); font-size: var(--text-xs); }
+.localization-metrics strong { display: block; margin-top: var(--space-xs); font-family: var(--font-display); font-size: var(--text-lg); font-weight: 500; }
+.localization-review { margin-top: var(--space-lg); border-top: var(--rule-thin) solid var(--color-rule); padding-top: var(--space-lg); }
+.localization-lines { display: grid; gap: var(--space-sm); margin-top: var(--space-md); }
+.localization-segment { border: var(--rule-thin) solid var(--color-rule); background: var(--color-paper); border-radius: var(--radius-sm); padding: var(--space-md); }
+.localization-segment > header { display: flex; justify-content: space-between; gap: var(--space-md); padding-bottom: var(--space-sm); color: var(--color-muted); font-size: var(--text-xs); }
+.localization-columns { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); border-top: var(--rule-thin) solid var(--color-rule); border-bottom: var(--rule-thin) solid var(--color-rule); }
+.localization-columns section { min-width: 0; padding: var(--space-md); }
+.localization-columns section + section { border-left: var(--rule-thin) solid var(--color-rule); }
+.localization-columns h4 { margin: 0 0 var(--space-sm); color: var(--color-muted); font-size: var(--text-xs); text-transform: uppercase; letter-spacing: .06em; }
+.localization-columns p { min-height: 2lh; white-space: pre-wrap; overflow-wrap: anywhere; font-size: var(--text-base); }
+.localization-columns small { display: block; margin-top: var(--space-sm); color: var(--color-muted); }
+.localization-columns textarea { min-height: 92px; }
+.localization-line-meta { display: flex; flex-wrap: wrap; gap: var(--space-sm) var(--space-lg); padding: var(--space-sm) 0; color: var(--color-muted); font-size: var(--text-xs); }
+.localization-segment details { border-top: var(--rule-thin) solid var(--color-rule); padding: var(--space-sm) 0; }
+.localization-segment summary { cursor: pointer; }
+.localization-segment li { margin: var(--space-xs) 0; }
+.series-memory { margin-top: var(--space-3xl); }
+.series-memory > .section-toolbar > div p { margin-top: var(--space-xs); }
+.memory-stack { display: grid; gap: var(--space-lg); margin-top: var(--space-lg); }
+.memory-card { border: var(--rule-thin) solid var(--color-rule); background: var(--color-paper-2); border-radius: var(--radius-sm); padding: var(--space-lg); }
+.memory-card-heading { display: flex; justify-content: space-between; align-items: flex-start; gap: var(--space-lg); margin-bottom: var(--space-lg); }
+.memory-card-heading p { margin-top: var(--space-xs); color: var(--color-muted); font-size: var(--text-xs); }
+.memory-form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-md); }
+.memory-form-grid textarea { min-height: 80px; }
+.memory-list { border-top: var(--rule-thin) solid var(--color-rule); }
+.memory-list article { display: flex; justify-content: space-between; align-items: flex-start; gap: var(--space-md); padding: var(--space-md) 0; border-bottom: var(--rule-thin) solid var(--color-rule); }
+.memory-list article > div:first-child { min-width: 0; }
+.memory-list p, .memory-list small { display: block; color: var(--color-muted); margin-top: var(--space-xs); overflow-wrap: anywhere; }
+.memory-actions { display: flex; gap: var(--space-sm); flex-wrap: wrap; flex-shrink: 0; }
+.memory-editor, .memory-subsection { margin-top: var(--space-lg); padding-top: var(--space-lg); border-top: var(--rule-thin) solid var(--color-rule); }
+.memory-editor h4, .memory-subsection h4 { margin: 0 0 var(--space-md); }
+.memory-subsection ul { padding-left: var(--space-lg); }
+.relationship-form { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)) auto; gap: var(--space-sm); margin-top: var(--space-md); }
+.tm-table { display: grid; border-top: var(--rule-thin) solid var(--color-rule); }
+.tm-head, .tm-row { display: grid; grid-template-columns: 1fr 1fr 160px; gap: var(--space-lg); padding: var(--space-md) 0; border-bottom: var(--rule-thin) solid var(--color-rule); }
+.tm-head { color: var(--color-muted); font-size: var(--text-xs); }
+.tm-row span { overflow-wrap: anywhere; white-space: pre-wrap; }
+.tm-row small { display: block; color: var(--color-muted); margin-top: var(--space-xs); }
+@media (max-width: 1000px) { .localization-metrics { grid-template-columns: repeat(3, minmax(0, 1fr)); } .relationship-form { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 767px) { .localization-panel { order: 5; } .editor-reserve { order: 6; } .localization-create { padding: var(--space-md); } .localization-form-grid, .memory-form-grid, .localization-columns { grid-template-columns: minmax(0, 1fr); } .localization-columns section + section { border-left: 0; border-top: var(--rule-thin) solid var(--color-rule); } .localization-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); } .memory-card { padding: var(--space-md); } .memory-card-heading, .memory-list article { flex-direction: column; } .relationship-form, .tm-head, .tm-row { grid-template-columns: minmax(0, 1fr); } .tm-head { display: none; } }

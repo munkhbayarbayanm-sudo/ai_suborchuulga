@@ -30,3 +30,5 @@ export type SeriesDetailDto = z.infer<typeof seriesDetailSchema>;
 export type EpisodeDetailDto = z.infer<typeof episodeDetailSchema>;
 export * from './extraction';
 export * from './fusion';
+export * from './localization';
+export * from './memory';

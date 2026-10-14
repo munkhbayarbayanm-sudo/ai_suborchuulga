@@ -1,12 +1,12 @@
-# Domain model through Phase 03
+# Domain model through Phase 04
 
 | Entity | Purpose / invariants |
 |---|---|
 | Series | Title, description, optional declared source language; many Episodes |
-| Episode | Series, title, optional number/source language; original assets, jobs, extraction/fusion runs; explicit activeFusionRunId |
+| Episode | Series, title, optional number/source language; original assets, jobs, extraction/fusion/localization runs; explicit activeFusionRunId and activeLocalizationRunId |
 | MediaAsset | Immutable original storage reference/filename/bytes/inspection; many streams/runs/derivatives |
 | MediaStream | Exact asset-local index, type, codec, source language/title and audio/video metadata |
-| ProcessingJob | INSPECT_MEDIA, EXTRACT_EMBEDDED_SUBTITLE, TRANSCRIBE_AUDIO, OCR_BURNED_SUBTITLE or FUSE_TRANSCRIPT |
+| ProcessingJob | INSPECT_MEDIA, EXTRACT_EMBEDDED_SUBTITLE, TRANSCRIBE_AUDIO, OCR_BURNED_SUBTITLE, FUSE_TRANSCRIPT or LOCALIZE_TRANSCRIPT |
 | SourceExtractionRun | One independent method/provider/version/model/settings/revision execution for an asset and optional selected stream |
 | SourceSegment | Timed source text and language/confidence/speaker, sequence, validated words and provider-scoped metadata |
 | MediaDerivative | Cached AUDIO_MONO_16K PCM16 artifact; original asset, selected audio index, opaque key, normalization snapshot/hash/size |
@@ -87,5 +87,30 @@ segments/manual history. Only explicit activation selects a completed run from t
 Episode. Completion/newest history never auto-activates. Deferrable evidence/active ownership
 FKs permit Episode cascades without permitting orphan evidence at commit; see ADR0004.
 
-No translated transcript, glossary/memory intelligence, professional editor/timeline,
-render or QC entities exist. Phase04 is deferred pending explicit user authorization.
+## Mongolian localization and explicit memory
+
+| Entity | Purpose / invariants |
+|---|---|
+| LocalizationRun | Explicit completed FusionRun input, en/zh to mn mode/provider/model/prompt/pipeline/settings/context snapshots, unique job, progress/usage/counts, historical revision and identity |
+| LocalizationBatch | Ordered bounded target IDs, DRAFT checkpoint and DRAFT/REVIEW usage, status/error/duration for safe resume |
+| LocalizedSegment | 1:1 TranscriptSegment input; frozen source text/timing/confidence/review/speaker/revision, machineDraft, currentText, product confidence/reasons, AI/manual state, human state and optimistic revision |
+| SeriesLocalizationProfile | User-managed default mode, setting, tone, style, formality, name handling and notes |
+| Character / CharacterAlias | Explicit series-owned translation memory for canonical/source/Mongolian names, role/title, voice/formality and notes |
+| CharacterRelationship | Directional user-managed character relation and free-form notes; both endpoints belong to the same Series |
+| GlossaryEntry | GLOBAL/SERIES/EPISODE/CHARACTER scoped source term, contextual Mongolian preference, notes and active/archived status |
+| TranslationMemoryEntry | Exact normalized source/Mongolian pair with IMPORTED, HUMAN_APPROVED or AI_SUGGESTED origin; trust status and optional immutable localized-revision provenance |
+
+LocalizationRun stores exactly which FusionRun it consumed and copies its current canonical
+values into source snapshot fields; it never changes FusionRun, TranscriptSegment or Phase02
+evidence. Unique LocalizationRun+TranscriptSegment and ordered batch constraints prevent
+duplicate rows. Reruns create history; activation is explicit and same-Episode constrained.
+
+`machineDraft` remains the provider's first proposal. `currentText` can hold the reviewed
+proposal or manual correction. Expected revision returns409 for stale writes. AI states
+PENDING/AI_GENERATED/AI_REVISED/MANUALLY_EDITED are independent from human
+UNREVIEWED/REVIEWED/APPROVED and confidence classification. Approving current text creates
+trusted HUMAN_APPROVED memory tied to that exact revision; later edits/review revocation
+archive it. Approved memory identity/provenance cannot be manually rewritten.
+
+No professional editor/timeline, waveform, timing change, subtitle split/merge, video edit,
+render/export or full final-QC entity was added. Those require future authorization.

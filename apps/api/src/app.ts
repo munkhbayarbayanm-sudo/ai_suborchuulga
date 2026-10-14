@@ -8,8 +8,11 @@ import { ApiErrors } from './errors';
 import { SourceController } from './source.controller';
 import {FusionController} from './fusion.controller';
 import type { ProviderSet } from '@mongolsub/extraction';
-export async function createApi(config: Config, providers?:ProviderSet) {
-  @Module({ controllers: [StudioController,SourceController,FusionController], providers: [{ provide: StudioService, useFactory: () => new StudioService(config,providers) }] })
+import type {TranslationProvider} from '@mongolsub/localization';
+import {LocalizationController} from './localization.controller';
+import {MemoryController} from './memory.controller';
+export async function createApi(config: Config, providers?:ProviderSet, localizationProvider?:TranslationProvider) {
+  @Module({ controllers: [StudioController,SourceController,FusionController,LocalizationController,MemoryController], providers: [{ provide: StudioService, useFactory: () => new StudioService(config,providers,localizationProvider) }] })
   class ApiModule {}
   const app = await NestFactory.create(ApiModule, { logger: ['error', 'warn', 'log'] });
   const origins = [config.WEB_ORIGIN];

@@ -23,6 +23,39 @@ enum JobType {
   TRANSCRIBE_AUDIO
   OCR_BURNED_SUBTITLE
   FUSE_TRANSCRIPT
+  LOCALIZE_TRANSCRIPT
+}
+
+enum LocalizationMode {
+  STRICT
+  NATURAL
+  CINEMATIC
+}
+enum LocalizationEditState {
+  PENDING
+  AI_GENERATED
+  AI_REVISED
+  MANUALLY_EDITED
+}
+enum GlossaryScope {
+  GLOBAL
+  SERIES
+  EPISODE
+  CHARACTER
+}
+enum MemoryStatus {
+  ACTIVE
+  ARCHIVED
+}
+enum TranslationMemoryOrigin {
+  HUMAN_APPROVED
+  IMPORTED
+  AI_SUGGESTED
+}
+enum TranslationMemoryStatus {
+  TRUSTED
+  SUGGESTED
+  ARCHIVED
 }
 
 enum FusionLanguage {
@@ -74,6 +107,11 @@ model Series {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   episodes Episode[]
+  localizationProfile SeriesLocalizationProfile?
+  characters Character[]
+  relationships CharacterRelationship[]
+  glossary GlossaryEntry[]
+  translationMemory TranslationMemoryEntry[]
 }
 model Episode {
   id String @id @default(uuid()) @db.Uuid
@@ -90,6 +128,11 @@ model Episode {
   jobs ProcessingJob[]
   extractions SourceExtractionRun[]
   fusionRuns FusionRun[] @relation("EpisodeFusions")
+  activeLocalizationRunId String? @db.Uuid
+  activeLocalizationRun LocalizationRun? @relation("ActiveLocalization", fields: [activeLocalizationRunId, id], references: [id, episodeId], onDelete: NoAction)
+  localizationRuns LocalizationRun[] @relation("EpisodeLocalizations")
+  glossary GlossaryEntry[]
+  @@unique([id, seriesId])
   @@index([seriesId])
 }
 model MediaAsset {
@@ -150,6 +193,7 @@ model ProcessingJob {
   updatedAt DateTime @updatedAt
   extractionRun SourceExtractionRun?
   fusionRun FusionRun?
+  localizationRun LocalizationRun?
   @@index([status, createdAt])
   @@index([episodeId])
   @@index([mediaAssetId])
@@ -252,6 +296,7 @@ model FusionRun {
   updatedAt DateTime @updatedAt
   inputs FusionRunInput[]
   segments TranscriptSegment[]
+  localizationRuns LocalizationRun[]
   @@unique([id, episodeId])
   @@unique([id, mediaAssetId])
   @@index([episodeId, createdAt])
@@ -290,6 +335,7 @@ model TranscriptSegment {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   evidence TranscriptEvidenceLink[]
+  localizations LocalizedSegment[]
   @@unique([id, fusionRunId])
   @@unique([fusionRunId, sequence])
   @@index([fusionRunId, startMs, sequence])
@@ -311,4 +357,206 @@ model TranscriptEvidenceLink {
   contributionWeight Float?
   @@id([transcriptSegmentId, sourceSegmentId])
   @@index([sourceSegmentId])
+}
+
+model SeriesLocalizationProfile {
+  seriesId String @id @db.Uuid
+  series Series @relation(fields: [seriesId], references: [id], onDelete: Cascade)
+  defaultMode LocalizationMode @default(NATURAL)
+  generalTone String @default("")
+  setting String @default("")
+  preferredStyle String @default("")
+  formalityGuidance String @default("")
+  nameHandling String @default("")
+  specialNotes String @default("")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+model Character {
+  id String @id @default(uuid()) @db.Uuid
+  seriesId String @db.Uuid
+  series Series @relation(fields: [seriesId], references: [id], onDelete: Cascade)
+  canonicalName String @db.VarChar(200)
+  sourceName String @db.VarChar(500)
+  mongolianName String? @db.VarChar(500)
+  role String? @db.VarChar(500)
+  title String? @db.VarChar(500)
+  speakingStyle String?
+  formality String? @db.VarChar(500)
+  notes String?
+  aliases CharacterAlias[]
+  relationshipsFrom CharacterRelationship[] @relation("RelationshipFrom")
+  relationshipsTo CharacterRelationship[] @relation("RelationshipTo")
+  glossary GlossaryEntry[]
+  translationMemory TranslationMemoryEntry[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@unique([id, seriesId])
+  @@index([seriesId, canonicalName])
+}
+model CharacterAlias {
+  id String @id @default(uuid()) @db.Uuid
+  characterId String @db.Uuid
+  character Character @relation(fields: [characterId], references: [id], onDelete: Cascade)
+  alias String @db.VarChar(200)
+  @@unique([characterId, alias])
+}
+model CharacterRelationship {
+  id String @id @default(uuid()) @db.Uuid
+  seriesId String @db.Uuid
+  series Series @relation(fields: [seriesId], references: [id], onDelete: Cascade)
+  fromCharacterId String @db.Uuid
+  toCharacterId String @db.Uuid
+  fromCharacter Character @relation("RelationshipFrom", fields: [fromCharacterId, seriesId], references: [id, seriesId], onDelete: Cascade)
+  toCharacter Character @relation("RelationshipTo", fields: [toCharacterId, seriesId], references: [id, seriesId], onDelete: Cascade)
+  type String @db.VarChar(200)
+  notes String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@unique([seriesId, fromCharacterId, toCharacterId, type])
+}
+model GlossaryEntry {
+  id String @id @default(uuid()) @db.Uuid
+  scope GlossaryScope
+  seriesId String? @db.Uuid
+  series Series? @relation(fields: [seriesId], references: [id], onDelete: Cascade)
+  episodeId String? @db.Uuid
+  episode Episode? @relation(fields: [episodeId, seriesId], references: [id, seriesId], onDelete: Cascade)
+  characterId String? @db.Uuid
+  character Character? @relation(fields: [characterId, seriesId], references: [id, seriesId], onDelete: Cascade)
+  sourceLanguage String @db.VarChar(2)
+  sourceTerm String @db.VarChar(500)
+  preferredMongolian String @db.VarChar(1000)
+  notes String?
+  caseSensitive Boolean @default(false)
+  status MemoryStatus @default(ACTIVE)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([seriesId, sourceLanguage, sourceTerm])
+  @@index([scope, status])
+}
+model TranslationMemoryEntry {
+  id String @id @default(uuid()) @db.Uuid
+  seriesId String @db.Uuid
+  series Series @relation(fields: [seriesId], references: [id], onDelete: Cascade)
+  sourceLanguage String @db.VarChar(2)
+  sourceText String
+  normalizedSourceText String
+  normalizedSourceHash String @db.VarChar(64)
+  mongolianText String
+  characterId String? @db.Uuid
+  character Character? @relation(fields: [characterId, seriesId], references: [id, seriesId], onDelete: NoAction)
+  origin TranslationMemoryOrigin
+  status TranslationMemoryStatus
+  identityHash String @unique @db.VarChar(64)
+  sourceLocalizedSegmentId String? @db.Uuid
+  sourceLocalizedSegment LocalizedSegment? @relation(fields: [sourceLocalizedSegmentId], references: [id], onDelete: NoAction)
+  sourceRevision Int?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([seriesId, sourceLanguage])
+  @@index([seriesId, sourceLanguage, normalizedSourceHash])
+  @@index([sourceLocalizedSegmentId])
+}
+model LocalizationRun {
+  id String @id @default(uuid()) @db.Uuid
+  episodeId String @db.Uuid
+  episode Episode @relation("EpisodeLocalizations", fields: [episodeId], references: [id], onDelete: Cascade)
+  selectedBy Episode[] @relation("ActiveLocalization")
+  fusionRunId String @db.Uuid
+  fusionRun FusionRun @relation(fields: [fusionRunId, episodeId], references: [id, episodeId], onDelete: NoAction)
+  sourceLanguage String @db.VarChar(2)
+  targetLanguage String @default("mn") @db.VarChar(2)
+  mode LocalizationMode
+  provider String @db.VarChar(80)
+  model String @db.VarChar(120)
+  providerVersion String? @db.VarChar(120)
+  promptVersion String @db.VarChar(80)
+  pipelineVersion String @db.VarChar(80)
+  settings Json
+  contextSnapshot Json
+  sourceSnapshotHash String @db.VarChar(64)
+  identityHash String @unique @db.VarChar(64)
+  revision String @default("default") @db.VarChar(36)
+  status JobStatus @default(QUEUED)
+  stage String?
+  processingJobId String @unique @db.Uuid
+  processingJob ProcessingJob @relation(fields: [processingJobId], references: [id], onDelete: Cascade)
+  segmentCount Int
+  completedSegmentCount Int @default(0)
+  highConfidenceCount Int @default(0)
+  reviewRecommendedCount Int @default(0)
+  likelyProblemCount Int @default(0)
+  batchCount Int
+  completedBatchCount Int @default(0)
+  inputTokens Int?
+  outputTokens Int?
+  cachedTokens Int?
+  usageComplete Boolean @default(false)
+  estimatedCost Float?
+  processingDurationMs Int?
+  createdAt DateTime @default(now())
+  startedAt DateTime?
+  completedAt DateTime?
+  updatedAt DateTime @updatedAt
+  batches LocalizationBatch[]
+  segments LocalizedSegment[]
+  @@unique([id, episodeId])
+  @@unique([id, fusionRunId])
+  @@index([episodeId, createdAt])
+}
+model LocalizationBatch {
+  id String @id @default(uuid()) @db.Uuid
+  localizationRunId String @db.Uuid
+  localizationRun LocalizationRun @relation(fields: [localizationRunId], references: [id], onDelete: Cascade)
+  batchIndex Int
+  status JobStatus @default(QUEUED)
+  targetSegmentIds Json
+  draftResults Json?
+  draftUsage Json?
+  reviewUsage Json?
+  errorCode String?
+  processingDurationMs Int?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@unique([localizationRunId, batchIndex])
+}
+model LocalizedSegment {
+  id String @id @default(uuid()) @db.Uuid
+  localizationRunId String @db.Uuid
+  fusionRunId String @db.Uuid
+  localizationRun LocalizationRun @relation(fields: [localizationRunId, fusionRunId], references: [id, fusionRunId], onDelete: Cascade)
+  transcriptSegmentId String @db.Uuid
+  transcriptSegment TranscriptSegment @relation(fields: [transcriptSegmentId, fusionRunId], references: [id, fusionRunId], onDelete: NoAction)
+  sequence Int
+  sourceTextSnapshot String
+  sourceStartMs Int
+  sourceEndMs Int
+  sourceConfidence Float
+  sourceReviewCategory ReviewCategory
+  sourceReviewStatus ReviewStatus
+  sourceEditRevision Int
+  sourceSpeaker String? @db.VarChar(100)
+  machineDraft String?
+  currentText String?
+  providerConfidence Float?
+  confidence Float?
+  confidenceReasons Json @default("[]")
+  reviewClassification ReviewCategory?
+  editState LocalizationEditState @default(PENDING)
+  humanReviewState ReviewStatus @default(UNREVIEWED)
+  revision Int @default(0)
+  characterCount Int?
+  readingLoad Float?
+  alternativeTranslation String?
+  suggestedLineBreak String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  translationMemory TranslationMemoryEntry[]
+  @@unique([localizationRunId, transcriptSegmentId])
+  @@unique([localizationRunId, sequence])
+  @@index([localizationRunId, reviewClassification, sequence])
+  @@index([localizationRunId, humanReviewState, sequence])
+  @@index([localizationRunId, editState, sequence])
+  @@index([transcriptSegmentId])
 }

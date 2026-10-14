@@ -37,10 +37,10 @@ export function Shell({ children, context = 'Library' }: { children: ReactNode; 
     <aside className="rail" aria-label="Studio navigation">
       <Link className="brand" href="/" aria-label="MongolSub Studio library"><span className="brand-mark">M<span>·</span></span><span className="brand-name">MongolSub<small>Studio</small></span></Link>
       <nav><Link href="/" className="nav-item current"><Icon name="library" />Series library</Link></nav>
-      <div className="rail-note"><span className="phase-label">Source extraction</span><p>Import media.<br />Inspect source evidence.</p></div>
+      <div className="rail-note"><span className="phase-label">Localization studio</span><p>Preserve evidence.<br />Review Mongolian.</p></div>
       <ServiceStatus />
     </aside>
-    <div className="workspace-shell"><header className="topbar"><span className="context-label">{context}</span><span className="topbar-note">Source extraction workspace</span></header><main id="workspace" tabIndex={-1}>{children}</main></div>
+    <div className="workspace-shell"><header className="topbar"><span className="context-label">{context}</span><span className="topbar-note">Mongolian localization workspace</span></header><main id="workspace" tabIndex={-1}>{children}</main></div>
   </div>;
 }
 
