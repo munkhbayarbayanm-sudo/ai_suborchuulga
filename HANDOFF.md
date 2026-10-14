@@ -1,71 +1,63 @@
-# Phase 03 handoff
+# Phase 04 handoff
 
-Read PROJECT_STATE.md first. Branch codex/phase-03-transcript-fusion was created
-directly from approved Phase 02 bc416581c97ae0648f4ce3f21bf902c973034670.
-Phase 02 implementation was 28a4f0dbad76067be2f3cf72ade8e6394186ca4a.
-Phase 03 implementation commit: `b1a3b90162c6b77a6e1aee37f85c2f8c1c586f3a`; inspect git log -2 for
-implementation and continuity HEAD. No merge, push or external deployment performed.
-Phase 03 is the stopping point. Phase 04 requires new explicit user authorization.
+Read PROJECT_STATE.md first. Branch `codex/phase-04-mongolian-localization` was created
+directly from approved Phase 03 `a195a3f31a1f2ad177394ec2b390802175e0896a`.
+Phase 03 implementation was `b1a3b90162c6b77a6e1aee37f85c2f8c1c586f3a`.
+Phase 04 implementation commit: `6c26caf018448b5365c3d9556d928208d5749967`; inspect `git log -2` for the
+final continuity commit. No merge, push or external deployment was performed. Phase 04 is the
+stopping point; Phase 05 requires explicit authorization.
 
-## Startup on this Windows checkout
+## Windows startup
 
-Private .env, portable tools and model caches remain ignored. Separate terminals:
+Private `.env`, portable tools, model caches and local validation records remain ignored.
+Use separate terminals:
 
 ```powershell
 pnpm dev:local-infra
-# Wait for PostgreSQL56432 and Redis56379; preserve unrelated55432.
 pnpm db:generate
 pnpm db:migrate
 pnpm dev
 ```
 
-Open http://127.0.0.1:3000. Fusion works without the Python provider service; it uses
-completed stored evidence. Embedded extraction remains available without AI.
-For optional inference, follow docs/PROVIDERS.md, pinned Python3.11 uv environment,
-private provider token and pnpm dev:providers. No new keys/models are needed here.
+Open `http://127.0.0.1:3000`. Extraction providers are optional and documented in PROVIDERS.
+Localization requires server-side `LOCALIZATION_PROVIDER`, `LOCALIZATION_API_KEY`,
+`LOCALIZATION_MODEL` and optional base URL/timeout/output/retry settings. Missing localization
+configuration is visible as unavailable and does not disable Phases 01–03. Never expose the key
+to Next/browser contracts. The default device for Phase 02 remains CPU; Phase 04 itself adds no
+Python/GPU dependency.
 
-For compiled runtime from repository root, with .env loaded:
+Compiled runtime after `pnpm build`:
 
 ```powershell
 pnpm exec dotenv -e .env -- node apps/api/dist/main.js
 pnpm exec dotenv -e .env -- node apps/worker/dist/main.js
-pnpm --filter @mongolsub/web exec next start --hostname 127.0.0.1
+pnpm exec dotenv -e .env -- pnpm --filter @mongolsub/web exec next start --hostname 127.0.0.1 --port 3000
 ```
 
-Stop owned services with Ctrl+C. Final verification services are stopped; local data
-persists. Docker host socket failure remains unresolved. The root dev runner keeps
-shared storage/work roots absolute. Do not change unrelated services.
+Stop owned processes with Ctrl+C. Do not flush shared Redis, truncate PostgreSQL or run more
+than one MongolSub worker during integration; tests use a temporary media root.
 
 ## Manual workflow
 
-1. Import/inspect media and extract independent sources as in Phase 02.
-2. In Transcript reconciliation, select exact completed input runs for the chosen
-   media. Up to 12 inputs, at most 1 embedded run; old experimental reruns stay unchecked.
-3. Choose AUTO/English/Chinese, optionally adjust saved algorithm thresholds. Different
-   language families are timing-only. AUTO's result and reason are visible on the run.
-4. Build transcript. Observe durable queued/processing/completed/failed/cancelled jobs.
-   Matching requests reuse identity; Run again creates a separate caller UUID revision.
-5. Select a completed history entry. Viewing/new completion never activates it.
-6. Inspect canonical lines and original candidates side by side, roles, similarity/IoU,
-   reasons, provider metadata, words and anonymous speakers. Use paginated issue filters.
-7. Edit canonical text and integer start/end milliseconds; optionally mark Reviewed or
-   Approved. Edits preserve derived values and all source evidence; normal edits reset
-   human review to Unreviewed. Stale edits receive409 and must reload the latest revision.
-8. Make the chosen transcript active explicitly. A rerun preserves earlier edits and
-   the active choice. Confidence/categories/summary stay the algorithm completion snapshot.
-9. Cancel queued/processing runs before final commit; no partial completed transcript
-   appears. Cancellation after completion cannot undo committed history.
-
-Existing legal actual-provider smoke records are in ignored data/phase02-runtime-smoke.json.
-pnpm test:smoke:fusion consumes them through compiled API/worker, compares source
-payloads before/after, edits/approves/activates and verifies rerun history. It requires
-those local records, not fresh provider inference; creates new synthetic fusion history.
-Its report is data/phase03-runtime-smoke.json. Screenshots are data/phase03-fusion-*.jpg.
+1. Complete/activate a Phase 03 English or Chinese FusionRun. The Episode localization panel
+   preselects the active FusionRun; choosing another completed run is explicit.
+2. Verify provider READY, select STRICT/NATURAL/CINEMATIC and generate. Repeated transport with
+   the same rerun key reuses the run; a new intentional action creates history.
+3. Observe Preparing context, Translating batch, Checking fidelity and Finalizing stages.
+   Cancel queued/processing work. Resume a FAILED run with the same provider/model; completed
+   batches and draft checkpoints remain.
+4. Select any historical run. Viewing/completion never activates it. Inspect persisted totals,
+   confidence categories, source/Mongolian rows, reasons, alternatives and filters.
+5. Edit Mongolian text. A stale revision returns 409. machineDraft remains unchanged and the row
+   becomes MANUALLY_EDITED. Approve only individual reviewed rows; approval is never automatic.
+6. Confirm the approved row appears in Series Translation Memory as HUMAN_APPROVED/TRUSTED.
+   Later text/review changes archive that exact revision's memory.
+7. Explicitly activate a completed localization. A rerun remains inactive and cannot overwrite
+   earlier edits or approvals.
+8. Manage Series profile, characters/aliases/relationships and scoped Glossary. Do not record
+   uncertain model guesses as canon. GLOBAL, SERIES, EPISODE and CHARACTER scopes are available.
 
 ## Validation and recovery
-
-Stop all other MongolSub workers before integration: tests own temporary media roots.
-Never flush shared Redis, truncate databases or delete unowned records.
 
 ```powershell
 pnpm db:migrate
@@ -73,42 +65,36 @@ pnpm db:test:migrations
 pnpm lint
 pnpm test
 pnpm test:integration
-pnpm benchmark:fusion
-pnpm benchmark:fusion:persistence
-# Stop the production web server before rebuilding on Windows.
+pnpm test:smoke:localization
+pnpm benchmark:localization
 pnpm build
 pnpm typecheck
 ```
 
-Build and typecheck share generated Next files; run them sequentially. OneDrive
-read-only/reparse generated .next caused EPERM cleanup. The owned previous build
-was preserved under ignored .tools/phase03-next-prior and a fresh build passed.
-Do not delete user work or disable OneDrive/security settings as a workaround.
+Build and typecheck share Next generated types; run them sequentially. `test:smoke:localization`
+makes two tiny original real-provider calls only when a valid key and model exist; otherwise it
+prints an explicit skip. Deterministic provider tests and the benchmark are not real LLM proof.
 
-Migrations003/004 are additive. Composite references prevent cross-media input links
-and source deletion leaving invalid evidence. Deferrable NO ACTION ownership/active
-foreign keys allow normal Episode/Series cascade cleanup while rejecting standalone
-evidence destruction at transaction commit. Migration004's initially incorrect long
-FK name was repaired after marking its failed transaction rolled back; clean-schema
-apply of all four migrations and final reapply passed. Do not rewrite applied migrations.
+Migrations 005/006 are additive. 005 creates localization/memory/history constraints and query
+indexes. 006 permits archival of a HUMAN_APPROVED entry while retaining immutable provenance;
+it does not rewrite old migrations. Fresh apply of all six migrations passed.
 
-Fusion final transaction locks the job state before any transcript/evidence batches.
-Failure rolls back all rows; cancellation wins only before this lock/commit. At-least-once
-terminal delivery is a no-op. Process crashes while PROCESSING share existing worker
-recovery limitations; no automatic destructive cleanup policy was added.
+The worker stores a draft checkpoint before REVIEW and all completed batches independently.
+Failure leaves the run FAILED, never COMPLETED; resume resets only incomplete batches. Job-state
+locking and optimistic segment revisions prevent cancellation/edit races. Concurrent resume is
+an atomic conditional claim. Provider outputs are runtime-validated and matched by UUID rather
+than response order.
 
-See docs/PHASE_03_VALIDATION.md for exact results, deterministic synthetic tests versus
-actual stored Phase02 evidence, benchmark scope and known limits. No new real ASR/OCR
-inference, Chinese speech/GPU/diarization or long-episode quality was claimed here.
+See docs/PHASE_04_VALIDATION.md for exact test counts, compiled/browser evidence, deterministic
+versus real-provider boundary, benchmark numbers and known limitations.
 
 ## Exact future continuation
 
-STOP until explicit Phase 04 authorization. Consume the explicitly active completed
-FusionRun, its current canonical TranscriptSegments and independent human review
-state; retain links to immutable source text, words, stream and provider provenance.
-Introduce localization records separately without overwriting canonical/manual or
-source history. No translation/editor/render functionality is implemented by this phase.
+STOP until Phase 05 is explicitly authorized. Consume the explicitly active COMPLETED
+LocalizationRun and stable LocalizedSegments. A professional editor may add video/waveform,
+timing drag/resize, split/merge, keyboard navigation, autosave and undo/redo as new operations.
+Do not mutate canonical/source evidence, machineDraft history, manual localization or approval.
 
-Required reads: PROJECT_STATE, HANDOFF, AGENTS, docs/MASTER_SPEC, ARCHITECTURE,
-ROADMAP, DOMAIN_MODEL, PROVIDERS, VALIDATION, PHASE_02_VALIDATION,
-PHASE_03_VALIDATION, FUSION_ALGORITHM and docs/adr/*.
+Required reads: PROJECT_STATE, HANDOFF, AGENTS, docs/MASTER_SPEC, ARCHITECTURE, ROADMAP,
+DOMAIN_MODEL, PROVIDERS, VALIDATION, PHASE_02_VALIDATION, PHASE_03_VALIDATION,
+PHASE_04_VALIDATION, LOCALIZATION_PIPELINE and docs/adr/*.

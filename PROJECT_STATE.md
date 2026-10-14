@@ -1,106 +1,113 @@
 # MongolSub Studio — project state
 
-Updated 2026-10-13, Asia/Ulaanbaatar.
+Updated 2026-10-14, Asia/Ulaanbaatar.
 
 | Field | State |
 |---|---|
-| Current / last authorized phase | Phase 03: transcript alignment, reconciliation and fusion |
-| Completed scope | Derived canonical transcripts, immutable source links, manual review and local validation |
-| Approved Phase 01 baseline | acb3eaad4e2febb3eb747e287775eebfafc08ee8 |
-| Approved Phase 02 baseline | bc416581c97ae0648f4ce3f21bf902c973034670; implementation 28a4f0dbad76067be2f3cf72ade8e6394186ca4a |
-| Active branch | codex/phase-03-transcript-fusion, created directly from approved Phase 02 |
-| Latest implementation commit | `b1a3b90162c6b77a6e1aee37f85c2f8c1c586f3a` |
-| Latest continuity commit | Current HEAD after final handoff; inspect git log -2 |
+| Current / last authorized phase | Phase 04: high-quality Mongolian localization engine |
+| Approved Phase 03 baseline | `a195a3f31a1f2ad177394ec2b390802175e0896a`; implementation `b1a3b90162c6b77a6e1aee37f85c2f8c1c586f3a` |
+| Active branch | `codex/phase-04-mongolian-localization`, created directly from the approved Phase 03 commit |
+| Phase 04 implementation commit | `6c26caf018448b5365c3d9556d928208d5749967` |
+| Latest continuity commit | Current HEAD after final handoff; inspect `git log -2` |
 | Merge / push | Neither authorized nor performed |
-| Next phase | Phase 04 requires new explicit authorization |
+| Next phase | Phase 05 requires new explicit authorization |
 | Deployment | Local validation only; Docker host failure remains unresolved |
 
 ## Implemented
 
-Phase 01/02 retain Next/Nest/Prisma PostgreSQL/Redis BullMQ, separate worker,
-streamed immutable original media, safe FFmpeg/ffprobe, independent embedded,
-WhisperX ASR and PaddleOCR evidence, derivatives, word timing and scoped provenance.
+Phases 01–03 remain intact: Next/Nest/Prisma PostgreSQL/Redis BullMQ, immutable media,
+independent embedded/ASR/OCR evidence, canonical transcript fusion, provenance, word timing,
+manual canonical correction and explicit active FusionRun.
 
-Phase 03 adds FusionRun, explicit FusionRunInput, TranscriptSegment and
-TranscriptEvidenceLink. Composite ownership foreign keys and timing/score checks
-protect the boundaries. No source record is edited by fusion or manual correction.
+Phase 04 adds additive LocalizationRun, LocalizationBatch and 1:1 LocalizedSegment records.
+Every run names one explicit completed English or Chinese FusionRun and snapshots its current
+canonical source plus relevant Series context. Target is Mongolian Cyrillic (`mn`). STRICT,
+NATURAL and CINEMATIC modes use versioned `localization-prompt-v1` and
+`localization-pipeline-v1`; old runs/manual work remain immutable history and activation is
+explicit.
 
-The pure packages/fusion algorithm is versioned fusion-v1. Canonical language
-is explicit en/zh; AUTO deterministically summarizes selected evidence and declared
-Episode/Series language. Ordered bounded temporal windows support1:1,1:many and
-many:1; existing text candidates win by quality and independent method agreement.
-Cross-language/unknown evidence contributes timing only, without lexical scores.
-Confidence is explainable product heuristics, not calibrated statistical probability.
-Chinese scripts remain preserved; no Simplified/Traditional conversion library.
+The reusable `packages/localization` boundary builds bounded coherent target/context windows,
+applies scoped Glossary and exact trusted Translation Memory, includes only explicit character
+speaker bindings, creates DRAFT/REVIEW prompts, validates exact structured target IDs and adds
+explainable deterministic quality signals. Context and complete provider prompts have separate
+bounds. Source risk propagates. Number, negation, glossary, approved-name and reading-load
+checks flag review; provider semantic findings can force LIKELY_PROBLEM. Product confidence is
+not calibrated probability and never equals human approval.
 
-Canonical text/timing keep their original derivation alongside manual overrides,
-optimistic edit revisions and independent UNREVIEWED/REVIEWED/APPROVED status.
-Reruns create separate history, deduplicated by caller UUID; activation is explicit.
-FUSE_TRANSCRIPT runs asynchronously and persists all results atomically under the
-job-row cancellation lock. Paginated API/UI show alternatives, reasons, original
-words/speakers/provider metadata, filters and minimal text/millisecond edits.
+The real initial adapter is configurable OpenAI Responses with strict JSON schema, bounded
+response/timeout/retry behavior and server-only credentials. Missing/disabled configuration
+reports MISCONFIGURED/UNAVAILABLE while prior phases boot. English and Chinese share the same
+provider path without script conversion. Normal tests use deterministic providers; no valid
+local credential/model existed, so no real paid English→Mongolian or Chinese→Mongolian request
+was executed or claimed.
+
+Character, alias, free-form relationship, Series localization profile, scoped Glossary and
+Translation Memory records are manually managed. AI suggestions cannot become trusted memory.
+Explicit approval creates HUMAN_APPROVED memory linked to the exact LocalizedSegment revision;
+later edits/review revocation archive it, and approved provenance/identity cannot be rewritten.
+Manual text keeps machineDraft, marks MANUALLY_EDITED and uses optimistic revision conflicts.
+
+LOCALIZE_TRANSCRIPT runs in the separate worker. Draft checkpoints and completed batches
+survive a failure; explicit resume does not repeat completed work. Concurrent resume is claimed
+atomically. Cancellation is checked between calls and before writes; partial runs never report
+COMPLETED. Usage is stored only when returned. UI provides readiness, explicit FusionRun/mode,
+history/progress/activation, paginated issue filters, dense source/Mongolian review, edit and
+per-line approval. Series UI manages profile, characters/aliases/relationships and every
+Glossary scope, and inspects trusted TM. No Approve All or fake rewrite exists.
 
 ## Executed evidence
 
-100 TypeScript unit/web tests (29 pure fusion,2 fusion contracts,10 fusion UI,
-3 slow-response polling regressions, all earlier tests);29 real HTTP/PostgreSQL/
-Redis/BullMQ/storage/FFmpeg integration tests (8 new fusion, 21 Phase 01/02).
-Python regression:21 passed, 1 Windows symlink-privilege skip. Lint, typecheck,
-all three production builds, existing and fresh-schema migrations passed.
-See docs/PHASE_03_VALIDATION.md for final command evidence and test boundaries.
+Final local evidence: 136/136 unit/web tests (20 files) and 37/37 integration tests (4 files)
+using real Nest HTTP, PostgreSQL, Redis, BullMQ, storage and FFmpeg. The 8 Phase 04 integration
+cases use an injected deterministic translation provider; the 29 earlier Phase 01–03 cases
+remain green. Lint, all 13 workspace typechecks plus tooling, all three production builds,
+current migration deploy and fresh Phase01→02→03→04 migration apply passed.
 
-Compiled API/worker fused actual persisted Phase 02 English embedded/ASR/OCR and
-Simplified/Traditional OCR evidence with Python providers stopped. Source payloads
-including words/metadata stayed unchanged. Browser verified queued/completed jobs,
-manual text/timing/approval, issue filters, explicit activation, revision protection,
-reload persistence, side-by-side candidates and retained word timing.
+A compiled API/worker/Next runtime called the production `openai-responses` adapter against an
+owned loopback deterministic Responses fixture for three English and one Chinese canonical
+line. It checkpointed DRAFT/REVIEW, persisted localization, preserved canonical payloads,
+manually edited/approved one row and explicitly activated the run. This proves the compiled
+HTTP/provider/worker/persistence boundary, not model quality or a real OpenAI call.
 
-Synthetic45–60 minute fixtures contain1500–3600 source segments. Pure fusion took
-33.59–81.05 ms in three repeats per size. Actual PostgreSQL transcript/evidence
-persistence took248–553 ms, worker wall366.29–832.84 ms on this shared Windows host.
-These are synthetic throughput observations, not real-episode accuracy benchmarks.
+Browser validation on production Next confirmed provider readiness, explicit active FusionRun,
+run metrics/history, source/Mongolian rows, approved filter, inline optimistic edit, per-line
+approval→trusted TM, and saved Series profile. Browser console warnings/errors: none.
 
-## Environment / limitations
+Deterministic 900-line/30-batch benchmark on this shared Windows host: context build 6 ms,
+initial PostgreSQL persistence 502 ms, worker orchestration+persistence 4,150 ms (worker
+reported 4,042 ms), zero network calls. These numbers are fake-provider/local persistence
+measurements and must not be presented as LLM throughput.
 
-Windows Node24.15/pnpm11.25, portable PostgreSQL56432/Redis56379. Existing unrelated
-PostgreSQL55432 is preserved. Docker's existing dockerInference socket failure
-remains; Compose execution is unverified. FFmpeg6.1.1 and old ffprobe4.0.2 were used.
-OneDrive read-only/reparse generated Next output required moving the old ignored
-build into .tools/phase03-next-prior before a fresh build; stop servers before builds
-and run build/typecheck sequentially because they share generated types.
+## Environment and limitations
 
-Fusion itself needs CPU, database and queue, no Python/models/GPU/API keys. Phase 02
-isolated Python3.11/WhisperX3.4.2/base/PaddleOCR3.2 PP-OCRv5 setup is unchanged.
-No new provider inference was executed in Phase 03. Historical actual CPU English ASR
-and three OCR language smoke results remain documented in PHASE_02_VALIDATION.
-Chinese speech ASR, GPU and diarization remain unverified.
+Windows Node 24.15/pnpm 11.25, portable PostgreSQL 56432 and Redis 56379. Existing unrelated
+PostgreSQL 55432 is preserved. Docker Compose remains unverified because of the existing host
+Docker inference-socket failure. Final app/provider processes are stopped; portable infra is
+also stopped at handoff. OneDrive generated-output handling remains a known build concern;
+run build then typecheck sequentially.
 
-Algorithm limits: up to 12 selected runs, at most 1 embedded run, 50000 source segments;
-bounded10s clusters,4 segments/run,64 candidates/window, 2000 comparison characters.
-Limits deliberately cause review rather than combinatorial/global matching. No
-global clock-drift correction, VAD-based gap inference, script conversion or semantic
-model. Captions/signs remain UNKNOWN; evidence coverage is not speech/translation
-completeness. ASR word bounds require complete words matching elected text; otherwise
-median boundaries are used. Approximate agreement, speaker conflicts and bounds
-require review. Completed confidence/metrics are historical algorithm snapshots;
-manual edits do not recalculate them. Trusted local app still lacks authentication,
-production deployment/GC/distributed recovery; worker crashes can require operator
-reconciliation. Earlier storage/provider limitations remain documented.
+No actual localization-provider credential/model was configured. Provider smoke returned
+`real_localization_smoke_skipped` for both languages. No provider cost, real token usage,
+latency, translation accuracy, чи/та consistency or human Mongolian quality claim was measured.
+The Responses model must support strict structured output. Pricing is deliberately absent.
 
-## Runtime handoff and exact continuation
+Quality checks are conservative heuristics: they cannot prove semantic fidelity, Mongolian
+grammar, sarcasm, pronoun/relationship resolution or correct inflection. Exact TM retrieval
+does not implement fuzzy CAT search. Memory creation is manual; no automatic canon discovery.
+Batch resume restarts the incomplete REVIEW call, and an oversized provider draft can require a
+new run with smaller batch settings. Core authentication, production deployment, distributed
+worker recovery, provider account readiness and long-episode paid-provider behavior remain
+unverified.
 
-Verification services are stopped at handoff. Ignored caches, synthetic smoke records,
-screenshots and previous build backup remain for local inspection. Read HANDOFF for
-startup; stop other MongolSub workers before integration, never flush shared Redis or
-truncate databases.
+## Exact continuation
 
-Await explicit Phase 04 authorization. Its input is the explicitly active COMPLETED
-FusionRun and paginated current TranscriptSegments, with human review status,
-original derived values, evidence links and source word/provider provenance. Define
-localization as separate revisions/entities; never overwrite source or canonical
-history, and do not equate confidence with human approval. No Phase 04 translation,
-LLM calls, glossary/memory intelligence or professional editor was started.
+STOP. Await explicit Phase 05 authorization. Start from the explicitly active COMPLETED
+LocalizationRun and its LocalizedSegments. Preserve machineDraft/currentText, manual revisions,
+confidence reasons, human approval and source TranscriptSegment/FusionRun/SourceSegment paths.
+Phase 05 may add video playback, waveform, subtitle timing clips, drag/resize, split/merge,
+keyboard navigation, autosave and undo/redo. It must not overwrite Phase 04 history or treat AI
+confidence as approval.
 
-Required reads: PROJECT_STATE, HANDOFF, AGENTS, MASTER_SPEC, ARCHITECTURE, ROADMAP,
+Required reads: PROJECT_STATE, HANDOFF, AGENTS, docs/MASTER_SPEC, ARCHITECTURE, ROADMAP,
 DOMAIN_MODEL, PROVIDERS, VALIDATION, PHASE_02_VALIDATION, PHASE_03_VALIDATION,
-FUSION_ALGORITHM and docs/adr/*.
+PHASE_04_VALIDATION, LOCALIZATION_PIPELINE, FUSION_ALGORITHM and docs/adr/*.
