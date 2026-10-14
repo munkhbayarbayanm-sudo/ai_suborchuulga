@@ -27,9 +27,12 @@
     "benchmark:editor": "dotenv -e .env -- tsx scripts/editor-benchmark.ts",
     "benchmark:qc": "dotenv -e .env -- tsx scripts/qc-benchmark.ts",
     "benchmark:video-editor": "tsx scripts/video-editor-benchmark.ts",
+    "benchmark:render": "tsx scripts/render-benchmark.ts",
+    "benchmark:render:runtime": "dotenv -e .env -- tsx scripts/render-runtime-benchmark.ts",
     "db:test:migrations": "dotenv -e .env -- tsx scripts/check-migrations.ts"
   },
   "devDependencies": {
+    "@mongolsub/render": "workspace:*",
     "@eslint/js": "^9.39.0",
     "@types/node": "^24.0.0",
     "bullmq": "^5.63.0",

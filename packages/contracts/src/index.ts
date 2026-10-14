@@ -35,3 +35,4 @@ export * from './memory';
 export * from './editor';
 export * from './qc';
 export * from './video-editor';
+export * from './render';

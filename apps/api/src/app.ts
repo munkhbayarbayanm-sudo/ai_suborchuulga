@@ -14,8 +14,9 @@ import {MemoryController} from './memory.controller';
 import {EditorController} from './editor.controller';
 import {QCController} from './qc.controller';
 import {VideoProjectController} from './video-project.controller';
+import {RenderController} from './render.controller';
 export async function createApi(config: Config, providers?:ProviderSet, localizationProvider?:TranslationProvider) {
-  @Module({ controllers: [StudioController,SourceController,FusionController,LocalizationController,MemoryController,EditorController,QCController,VideoProjectController], providers: [{ provide: StudioService, useFactory: () => new StudioService(config,providers,localizationProvider) }] })
+  @Module({ controllers: [StudioController,SourceController,FusionController,LocalizationController,MemoryController,EditorController,QCController,VideoProjectController,RenderController], providers: [{ provide: StudioService, useFactory: () => new StudioService(config,providers,localizationProvider) }] })
   class ApiModule {}
   const app = await NestFactory.create(ApiModule, { logger: ['error', 'warn', 'log'] });
   const origins = [config.WEB_ORIGIN];

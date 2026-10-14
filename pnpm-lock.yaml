@@ -11,6 +11,9 @@ importers:
       '@eslint/js':
         specifier: ^9.39.0
         version: 9.39.5
+      '@mongolsub/render':
+        specifier: workspace:*
+        version: link:packages/render
       '@types/node':
         specifier: ^24.0.0
         version: 24.19.2
@@ -83,6 +86,9 @@ importers:
       '@mongolsub/queue':
         specifier: workspace:*
         version: link:../../packages/queue
+      '@mongolsub/render':
+        specifier: workspace:*
+        version: link:../../packages/render
       '@mongolsub/storage':
         specifier: workspace:*
         version: link:../../packages/storage
@@ -190,6 +196,9 @@ importers:
       '@mongolsub/queue':
         specifier: workspace:*
         version: link:../../packages/queue
+      '@mongolsub/render':
+        specifier: workspace:*
+        version: link:../../packages/render
       '@mongolsub/storage':
         specifier: workspace:*
         version: link:../../packages/storage
@@ -211,6 +220,9 @@ importers:
 
   packages/contracts:
     dependencies:
+      '@mongolsub/render':
+        specifier: workspace:*
+        version: link:../render
       zod:
         specifier: ^3.25.0
         version: 3.25.76
@@ -317,6 +329,15 @@ importers:
       ioredis:
         specifier: ^5.8.0
         version: 5.11.1(supports-color@7.2.0)
+      zod:
+        specifier: ^3.25.0
+        version: 3.25.76
+
+  packages/render:
+    dependencies:
+      '@mongolsub/video-editor':
+        specifier: workspace:*
+        version: link:../video-editor
       zod:
         specifier: ^3.25.0
         version: 3.25.76

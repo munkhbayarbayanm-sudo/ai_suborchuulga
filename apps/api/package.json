@@ -32,7 +32,8 @@
     "@mongolsub/localization": "workspace:*"
     ,"@mongolsub/editor": "workspace:*",
     "@mongolsub/qc": "workspace:*",
-    "@mongolsub/video-editor": "workspace:*"
+    "@mongolsub/video-editor": "workspace:*",
+    "@mongolsub/render": "workspace:*"
   },
   "devDependencies": {
     "@types/busboy": "^1.5.4",

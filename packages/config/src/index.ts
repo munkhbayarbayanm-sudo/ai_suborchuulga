@@ -14,6 +14,8 @@ const schema = z.object({
   EXTRACTION_PROVIDER_TOKEN: z.string().default(''),
   EXTRACTION_TIMEOUT_MS: z.coerce.number().int().min(1000).max(86400000).default(7200000),
   OCR_MAX_FRAMES: z.coerce.number().int().min(1).max(100000).default(20000),
+  RENDER_PROCESS_TIMEOUT_MS: z.coerce.number().int().min(1000).max(86400000).default(21600000),
+  MAX_RENDER_OUTPUT_BYTES: z.coerce.number().int().positive().max(Number.MAX_SAFE_INTEGER).default(10737418240),
   LOCALIZATION_PROVIDER: z.enum(['openai','disabled']).default('openai'),
   LOCALIZATION_API_KEY: z.string().default(''),
   LOCALIZATION_MODEL: z.string().max(120).default(''),

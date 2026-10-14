@@ -24,6 +24,7 @@
     "@mongolsub/fusion": "workspace:*",
     "@mongolsub/localization": "workspace:*",
     "@mongolsub/editor": "workspace:*",
-    "@mongolsub/qc": "workspace:*"
+    "@mongolsub/qc": "workspace:*",
+    "@mongolsub/render": "workspace:*"
   }
 }

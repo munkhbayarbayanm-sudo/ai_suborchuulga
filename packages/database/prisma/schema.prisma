@@ -32,6 +32,13 @@ enum JobType {
   GENERATE_WAVEFORM
   RUN_SUBTITLE_QC
   RUN_SERIES_QC
+  RENDER_VIDEO_PROJECT
+}
+
+enum RenderOutputKind {
+  VIDEO
+  SRT
+  ASS
 }
 
 enum LocalizationMode {
@@ -404,6 +411,7 @@ model ProcessingJob {
   localizationRun   LocalizationRun?
   editorPreparation EditorMediaPreparation?
   qcRun             QCRun?
+  renderJob         RenderJob?
 
   @@index([status, createdAt])
   @@index([episodeId])
@@ -858,10 +866,92 @@ model VideoProject {
   clips                    VideoClip[]
   overlays                 VisualOverlay[]
   operations               VideoEditOperation[] @relation("VideoProjectOperations")
+  renderRequests           RenderRequest[]
 
   @@unique([id, episodeId])
   @@unique([episodeId, initializationKey])
   @@index([episodeId, createdAt])
+}
+
+model RenderRequest {
+  id              String         @id @default(uuid()) @db.Uuid
+  videoProjectId  String         @db.Uuid
+  project         VideoProject   @relation(fields: [videoProjectId], references: [id], onDelete: Cascade)
+  clientRequestId String         @db.Uuid
+  settings        Json
+  createdAt       DateTime       @default(now())
+  snapshot        RenderSnapshot?
+
+  @@unique([videoProjectId, clientRequestId])
+  @@index([videoProjectId, createdAt])
+}
+
+model RenderSnapshot {
+  id                       String        @id @default(uuid()) @db.Uuid
+  renderRequestId          String        @unique @db.Uuid
+  request                  RenderRequest @relation(fields: [renderRequestId], references: [id], onDelete: Cascade)
+  videoProjectId           String        @db.Uuid
+  videoProjectRevision     Int
+  subtitleDocumentId       String?       @db.Uuid
+  subtitleDocumentRevision Int?
+  rendererVersion          String        @db.VarChar(80)
+  fingerprint              String        @db.VarChar(64)
+  snapshot                 Json
+  createdAt                DateTime      @default(now())
+  renderJob                RenderJob?
+
+  @@index([videoProjectId, videoProjectRevision])
+  @@index([fingerprint])
+}
+
+model RenderJob {
+  id                    String         @id @default(uuid()) @db.Uuid
+  renderSnapshotId      String         @unique @db.Uuid
+  snapshot              RenderSnapshot @relation(fields: [renderSnapshotId], references: [id], onDelete: Cascade)
+  processingJobId       String         @unique @db.Uuid
+  processingJob         ProcessingJob  @relation(fields: [processingJobId], references: [id], onDelete: Cascade)
+  status                JobStatus      @default(QUEUED)
+  stage                 String         @default("Queued") @db.VarChar(80)
+  progress              Int            @default(0)
+  renderedMs            Int            @default(0)
+  speed                 Float?
+  etaSeconds            Int?
+  cancellationRequested Boolean        @default(false)
+  attempt               Int            @default(1)
+  errorCode             String?        @db.VarChar(80)
+  errorMessage          String?
+  startedAt             DateTime?
+  completedAt           DateTime?
+  createdAt             DateTime       @default(now())
+  updatedAt             DateTime       @updatedAt
+  outputs               RenderOutput[]
+
+  @@index([status, createdAt])
+  @@index([renderSnapshotId, createdAt])
+}
+
+model RenderOutput {
+  id              String           @id @default(uuid()) @db.Uuid
+  renderJobId     String           @db.Uuid
+  renderJob       RenderJob        @relation(fields: [renderJobId], references: [id], onDelete: Cascade)
+  kind            RenderOutputKind
+  filename        String           @db.VarChar(255)
+  storageKey      String           @unique
+  mimeType        String           @db.VarChar(100)
+  container       String           @db.VarChar(40)
+  sizeBytes       BigInt
+  checksumSha256  String           @db.VarChar(64)
+  durationMs      Int?
+  width           Int?
+  height          Int?
+  videoCodec      String?          @db.VarChar(80)
+  audioCodec      String?          @db.VarChar(80)
+  subtitleCodec   String?          @db.VarChar(80)
+  validation      Json
+  createdAt       DateTime         @default(now())
+
+  @@unique([renderJobId, kind])
+  @@index([renderJobId, createdAt])
 }
 
 model VideoTrack {
