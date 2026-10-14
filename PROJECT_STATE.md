@@ -7,7 +7,7 @@ Updated 2026-10-14, Asia/Ulaanbaatar.
 | Current / last authorized phase | Phase 06: full subtitle QC and series consistency |
 | Approved Phase 05 baseline | `04fba34fdce43f6ee011aa7638626df6a7ba8e1f` |
 | Active branch | `codex/phase-06-subtitle-qc`, created directly from the approved Phase 05 commit |
-| Phase 06 implementation commit | Pending final implementation commit; record in continuity commit |
+| Phase 06 implementation commit | `6d30da230bdb43ce8fd670f00cec67be7c71cf38` |
 | Merge / push | Neither authorized nor performed |
 | Next phase | Phase 07 requires new explicit authorization |
 | Deployment | Local Windows validation only; Docker host failure remains unresolved |

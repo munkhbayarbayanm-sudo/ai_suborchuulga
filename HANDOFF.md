@@ -2,12 +2,16 @@
 
 Read `PROJECT_STATE.md` first. Branch `codex/phase-06-subtitle-qc` was created directly from approved
 Phase 05 commit `04fba34fdce43f6ee011aa7638626df6a7ba8e1f` (implementation commit
-`37d2893ee0be9da9bc48274d5ff0b308e888083d`). Record the Phase 06 implementation hash after the first
-commit. No merge, push or deployment was performed. Phase 06 is the stop.
+`37d2893ee0be9da9bc48274d5ff0b308e888083d`). Phase 06 implementation commit is
+`6d30da230bdb43ce8fd670f00cec67be7c71cf38`. No merge, push or deployment was performed. Phase 06 is
+the stop.
 
 ## Windows startup
 
 Private `.env`, portable tools, media, generated derivatives and provider keys remain ignored.
+Managed worktrees do not copy the ignored `.tools` directory. Run `scripts/setup-local-windows.ps1`
+inside the worktree first, or launch `pnpm dev:local-infra` from the primary checkout that already owns
+the portable toolchain while keeping the same loopback `.env` ports.
 
 ```powershell
 pnpm dev:local-infra

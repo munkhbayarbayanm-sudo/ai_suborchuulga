@@ -3,6 +3,7 @@
 Date: 2026-10-14, Asia/Ulaanbaatar
 Branch: `codex/phase-06-subtitle-qc`
 Approved Phase 05 baseline: `04fba34fdce43f6ee011aa7638626df6a7ba8e1f`
+Phase 06 implementation commit: `6d30da230bdb43ce8fd670f00cec67be7c71cf38`
 
 ## Scope validated
 
@@ -69,6 +70,8 @@ document and cue.
 - Local preview rechecks changed cues and a bounded neighbor window; full QC is required for authoritative
   whole-document and series status.
 - Optional AI linguistic review quality is unverified without real provider credentials.
+- The managed worktree did not contain the ignored `.tools` directory; portable PostgreSQL/Redis were
+  launched from the primary checkout's existing Windows toolchain on the same configured loopback ports.
 - Series issue UI currently loads a bounded 200-issue page; document editor fetches persisted issues in
   200-row API pages and renders 50 at a time.
 - No production deployment, Docker Compose, large real-footage certification or multi-user concurrency
