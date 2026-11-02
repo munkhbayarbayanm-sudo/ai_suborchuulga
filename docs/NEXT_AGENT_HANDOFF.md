@@ -6,11 +6,13 @@ Repository documents, not chat history, are the source of truth.
 ## Exact checkout
 
 - Branch: `codex/phase-08-render-export`
+- Remote: `https://github.com/munkhbayarbayanm-sudo/ai_suborchuulga.git`
 - Approved Phase 07 baseline: `c1211bb6e9c63e9aedb00ffb2296111b670b2df4`
 - Phase 08 design: `8d07092de3cc06269c2728fbbe0b13bd8176c5b1`
 - Phase 08 implementation: `37d7fc2d47e10a40e5369d9e0fd26bd65b46d82c`
 - Phase 08 validation/continuity: `aa0960b320ba2cd13a52d6111b1203724d3868cd`
-- Required continuation: checkout the named branch and verify its actual remote tip with `git rev-parse HEAD`
+- Required continuation: clone the remote (its HEAD selects the named branch) and verify the tip with
+  `git branch --show-current`, `git rev-parse HEAD`, and `git status --short --branch`
 - Merge/deployment: no merge to `main` and no production deployment were performed
 
 Before any edit run:
@@ -66,7 +68,9 @@ scope.
 Follow `README.md` exactly. The minimal sequence after cloning is:
 
 ```powershell
-git switch --track origin/codex/phase-08-render-export
+git clone https://github.com/munkhbayarbayanm-sudo/ai_suborchuulga.git kino
+Set-Location kino
+git switch codex/phase-08-render-export
 corepack enable
 corepack prepare pnpm@11.25.0 --activate
 pnpm install --frozen-lockfile

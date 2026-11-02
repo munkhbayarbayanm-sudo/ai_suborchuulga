@@ -30,9 +30,10 @@ Prefer a normal local development directory such as `C:\dev\kino`; do not synchr
 OneDrive.
 
 ```powershell
-git clone <REMOTE_URL> kino
+git clone https://github.com/munkhbayarbayanm-sudo/ai_suborchuulga.git kino
 Set-Location kino
-git switch --track origin/codex/phase-08-render-export
+# The remote HEAD currently checks out codex/phase-08-render-export automatically.
+git switch codex/phase-08-render-export
 corepack enable
 corepack prepare pnpm@11.25.0 --activate
 pnpm install --frozen-lockfile

@@ -9,7 +9,7 @@ Updated 2026-11-02, Asia/Ulaanbaatar.
 | Active branch | `codex/phase-08-render-export`, created directly from the approved baseline |
 | Phase 08 design commit | `8d07092de3cc06269c2728fbbe0b13bd8176c5b1` |
 | Phase 08 implementation commit | `37d7fc2d47e10a40e5369d9e0fd26bd65b46d82c` |
-| Merge / push | No merge. Cross-computer branch push authorized 2026-11-02; remote configuration is the remaining external prerequisite. |
+| Merge / push | No merge. Published to `https://github.com/munkhbayarbayanm-sudo/ai_suborchuulga.git` on branch `codex/phase-08-render-export`; remote HEAD selects this branch. |
 | Next phase | Phase 09 requires new explicit authorization |
 | Deployment | Local Windows validation only; no production deployment |
 

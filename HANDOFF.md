@@ -4,9 +4,10 @@ Read `PROJECT_STATE.md` first. Branch `codex/phase-08-render-export` was created
 Phase 07 commit `c1211bb6e9c63e9aedb00ffb2296111b670b2df4`. Design commit is
 `8d07092de3cc06269c2728fbbe0b13bd8176c5b1`; implementation commit is
 `37d7fc2d47e10a40e5369d9e0fd26bd65b46d82c`; Phase 08 validation/continuity is
-`aa0960b320ba2cd13a52d6111b1203724d3868cd`. No merge or deployment was performed. The user authorized pushing
-this feature branch for cross-computer continuation on 2026-11-02; a remote URL/configuration is the only external
-push prerequisite in this checkout.
+`aa0960b320ba2cd13a52d6111b1203724d3868cd`. No merge or deployment was performed. The user authorized and
+published this feature branch for cross-computer continuation on 2026-11-02 at
+`https://github.com/munkhbayarbayanm-sudo/ai_suborchuulga.git`. Remote HEAD selects
+`codex/phase-08-render-export`; do not continue from a stale local branch or create Phase09 without authorization.
 
 For another computer or agent, read `README.md` and `docs/NEXT_AGENT_HANDOFF.md` before starting services or
 editing code. They distinguish source-controlled continuity from ignored secrets, databases, media, model caches,
