@@ -1,6 +1,6 @@
 # MongolSub Studio — project state
 
-Updated 2026-10-14, Asia/Ulaanbaatar.
+Updated 2026-11-02, Asia/Ulaanbaatar.
 
 | Field | State |
 |---|---|
@@ -9,7 +9,7 @@ Updated 2026-10-14, Asia/Ulaanbaatar.
 | Active branch | `codex/phase-08-render-export`, created directly from the approved baseline |
 | Phase 08 design commit | `8d07092de3cc06269c2728fbbe0b13bd8176c5b1` |
 | Phase 08 implementation commit | `37d7fc2d47e10a40e5369d9e0fd26bd65b46d82c` |
-| Merge / push | Neither authorized nor performed |
+| Merge / push | No merge. Cross-computer branch push authorized 2026-11-02; remote configuration is the remaining external prerequisite. |
 | Next phase | Phase 09 requires new explicit authorization |
 | Deployment | Local Windows validation only; no production deployment |
 
@@ -57,3 +57,7 @@ Required reads: `AGENTS.md`, `PROJECT_STATE.md`, `HANDOFF.md`, `docs/MASTER_SPEC
 `docs/ARCHITECTURE.md`, `docs/ROADMAP.md`, `docs/DOMAIN_MODEL.md`, `docs/VALIDATION.md`,
 `docs/PHASE_08_VALIDATION.md`, `docs/RENDER_PIPELINE.md`, `docs/EXPORT_FORMATS.md`,
 `docs/PREVIEW_RENDER_PARITY.md`, `docs/VIDEO_EDITOR_ARCHITECTURE.md` and `docs/adr/*`.
+
+For a fresh clone or agent handoff, start with `README.md` and `docs/NEXT_AGENT_HANDOFF.md`. Git deliberately
+excludes secrets, uploaded media, local databases, generated outputs, tool downloads, AI weights and build
+artifacts. Recreate the environment locally and treat previous-host validation as historical until rerun.

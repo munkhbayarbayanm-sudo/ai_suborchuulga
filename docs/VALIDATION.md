@@ -1,5 +1,27 @@
 # Validation evidence
 
+## Cross-computer handoff refresh — 2026-11-02
+
+Before preparing the branch for remote transfer, the active Phase08 checkout was revalidated on the existing
+Windows host. Other MongolSub web/API/worker processes were stopped before integration; the owned portable
+PostgreSQL/Redis services remained available.
+
+| Command | Result | Scope/qualification |
+|---|---|---|
+| `pnpm lint` | exit 0 | full repository ESLint after handoff documentation changes |
+| `pnpm typecheck` | 17/17 workspace tasks plus tooling passed | 16 tasks executed, one unchanged package replayed from Turbo cache |
+| `pnpm test` | 29 files, 182 tests passed | Phase01–08 deterministic unit regression |
+| `pnpm --filter @mongolsub/web test` | 7 files, 41 tests passed | web helper regression |
+| `pnpm db:migrate` | exit 0, no pending migrations | current local Phase08 database |
+| `pnpm db:test:migrations` | all 14 migrations applied | fresh temporary Phase01→08 schema |
+| `pnpm test:integration` | 8 files, 61 tests passed | real API/PostgreSQL/Redis/BullMQ/filesystem/FFmpeg integration; deterministic provider fixtures where documented |
+| `pnpm build` | 3/3 application builds passed | unchanged API/worker/web build results replayed from Turbo cache |
+
+This refresh did not rerun real WhisperX/PaddleOCR/OpenAI inference, the 10-minute render benchmark, compiled
+runtime startup or browser acceptance. Their historical executed evidence and limits remain in the phase reports.
+It also does not validate the future computer: that host must recreate ignored local dependencies and rerun its
+own checks. See `README.md` and `NEXT_AGENT_HANDOFF.md`.
+
 Current Phase08 evidence: [PHASE_08_VALIDATION.md](PHASE_08_VALIDATION.md).
 Phase07 historical evidence: [PHASE_07_VALIDATION.md](PHASE_07_VALIDATION.md).
 Phase06 historical evidence: [PHASE_06_VALIDATION.md](PHASE_06_VALIDATION.md).

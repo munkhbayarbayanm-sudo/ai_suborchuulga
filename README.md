@@ -1,117 +1,94 @@
 # MongolSub Studio
 
-Phase 03: a local studio for organizing Series/Episodes, importing original video,
-extracting independent embedded subtitle/WhisperX/PaddleOCR evidence, and deriving
-inspectable canonical transcripts with confidence reasons and manual review.
-Source evidence remains immutable. Translation and professional editing remain deferred.
+MongolSub Studio is a Windows-capable subtitle localization and video-delivery workspace. The current branch
+implements the complete Phase 01–08 pipeline: media ingest, multilingual evidence extraction, transcript fusion,
+English/Chinese-to-Mongolian localization, subtitle editing, QC, non-destructive video editing, and final
+render/export.
 
-## Prerequisites
+Repository continuity is authoritative. A new agent or computer must read, in order:
 
-Node.js >=22.12, pnpm 11.25, Docker Desktop/Engine, FFmpeg and FFprobe on PATH.
-PostgreSQL must use UTF-8. API/worker run outside Docker. This foundation is intended
-for one trusted local user; it has no authentication and binds to loopback by default.
+1. `PROJECT_STATE.md`
+2. `HANDOFF.md`
+3. `docs/NEXT_AGENT_HANDOFF.md`
+4. `AGENTS.md`
+5. `docs/MASTER_SPEC.md`, `docs/ARCHITECTURE.md`, `docs/ROADMAP.md`, and relevant ADRs
 
-## Run
+Do not begin Phase 09 without explicit user authorization.
 
-```powershell
-pnpm install
-Copy-Item .env.example .env
-docker compose up -d --wait
-pnpm db:generate
-pnpm db:migrate
-pnpm dev
-```
+## Fresh Windows checkout
 
-Open http://127.0.0.1:3000. API is http://127.0.0.1:4000; `/health` reports database,
-Redis, FFmpeg, FFprobe and worker heartbeat separately. Stop `pnpm dev` with Ctrl+C.
-`docker compose stop` preserves infrastructure data. Do not use `down -v` on needed data.
+Prerequisites:
 
-The root `.env` is loaded by `pnpm dev`, migrations, fixtures and integration tests.
-Set absolute `STORAGE_ROOT`, `FFMPEG_PATH` and `FFPROBE_PATH` where appropriate.
-Config is validated on startup without printing secret values. Public web settings
-are baked into production builds; `NEXT_PUBLIC_API_URL` is a public URL, never a secret.
-Both localhost and 127.0.0.1 origins are accepted when `WEB_ORIGIN` is loopback.
+- Git
+- Node.js 22.12 or newer
+- Corepack/pnpm 11.25.0
+- PowerShell 7 or Windows PowerShell 5.1
+- enough local disk for PostgreSQL, media, AI weights, and render outputs
 
-The development runner resolves `STORAGE_ROOT` before Turbo changes each app's
-working directory, so API and worker share the same media directory.
-
-## Optional Windows fallback when Docker cannot start
+Prefer a normal local development directory such as `C:\dev\kino`; do not synchronize `.git`, `node_modules`,
+`.next`, `.tools`, `.env`, `data`, Python environments, databases, media, model weights, or render outputs through
+OneDrive.
 
 ```powershell
+git clone <REMOTE_URL> kino
+Set-Location kino
+git switch --track origin/codex/phase-08-render-export
+corepack enable
+corepack prepare pnpm@11.25.0 --activate
+pnpm install --frozen-lockfile
 powershell -ExecutionPolicy Bypass -File scripts/setup-local-windows.ps1
-pnpm dev:local-infra
-# Leave infrastructure running; in another terminal:
 pnpm db:generate
+```
+
+The setup script installs ignored portable PostgreSQL/FFmpeg/FFprobe/Redis tooling and creates an ignored `.env`
+from `.env.example`. Inspect local settings before starting services. It downloads pinned tools, so the first setup
+requires internet access.
+
+Start portable infrastructure in terminal 1:
+
+```powershell
+pnpm dev:local-infra
+```
+
+In terminal 2, apply the complete additive Phase 01→08 schema and start the web/API/worker applications:
+
+```powershell
 pnpm db:migrate
 pnpm dev
 ```
 
-This installs portable tools only under ignored `.tools/` and persists UTF-8
-PostgreSQL and Redis data under ignored `data/`. Redis's release archive hash is
-verified before extraction. Stop infrastructure with Ctrl+C. Ports must be free;
-the runner refuses to reuse another project's service. The pinned portable FFprobe
-is old (4.0.2) and was used for synthetic verification; install current supported
-FFmpeg/FFprobe for real media and configure their paths. Docker Compose remains
-the preferred infrastructure setup. No Docker settings or user databases are reset.
+Open `http://127.0.0.1:3000`; API health is `http://127.0.0.1:4000/health`. Stop owned processes with Ctrl+C.
 
-## Validate
+## Optional local AI providers
+
+Embedded subtitle extraction and the core application do not require Python AI dependencies. WhisperX/PaddleOCR
+and localization-provider setup are optional and must not prevent the core application from booting. For local
+extraction providers use Python 3.11 plus `uv` and follow `docs/PROVIDERS.md`. For real OpenAI localization copy
+only the required values into ignored `.env`; never commit API keys. Deterministic tests do not require paid calls.
+
+## Validation
+
+Stop other MongolSub API/worker/web processes before integration tests; test workers use a temporary storage root
+while sharing Redis. Do not flush shared Redis and do not truncate databases.
 
 ```powershell
+pnpm db:migrate
+pnpm db:test:migrations
 pnpm lint
 pnpm typecheck
 pnpm test
+pnpm --filter @mongolsub/web test
 pnpm test:integration
 pnpm build
-pnpm fixture
 ```
 
-Integration uses real PostgreSQL, Redis/BullMQ, filesystem, HTTP and media tools.
-Run it against a dedicated development database **with other MongolSub workers stopped**:
-tests create their own worker and temporary media root. Test records/files are cleaned
-up; no global database or Redis flush is performed. Infrastructure failures fail the suite.
+See `docs/PHASE_08_VALIDATION.md` for the exact latest executed evidence and its limits. Build success is not a
+production deployment claim.
 
-The generated `data/fixtures/synthetic.mkv` is two seconds, 320×180, with audio and
-an embedded synthetic English subtitle stream. It is ignored by Git.
+## What Git deliberately does not transfer
 
-With all three apps running, `pnpm test:smoke` verifies the live API/worker success
-and failure flow and leaves a clearly labelled synthetic verification Series/Episode
-for inspection. Its IDs are saved in ignored `data/runtime-smoke.json`.
-
-To exercise production artifacts after building, load `.env` when starting the API
-and worker (`pnpm exec dotenv -e .env -- node apps/api/dist/main.js`, similarly
-`apps/worker/dist/main.js`). Start web with `pnpm --filter @mongolsub/web exec next start --hostname 127.0.0.1`.
-
-## Workflow
-
-1. Create a Series; choose `en`, `zh-CN`, `zh-TW` or another language identifier.
-2. Open it, create an Episode; numbering is optional.
-3. Open Episode, import one local video. Upload progress measures transfer; success
-   is shown only after storage and database commit.
-4. Worker picks the durable job, runs FFprobe, and saves streams and metadata together.
-5. Inspect status, duration, resolution, container, size, codecs and stream languages.
-6. Import a damaged video to inspect the persisted failure message. The studio remains usable.
-
-Video preview, subtitle/timeline editing and export are clearly disabled future areas.
-
-Read [PROJECT_STATE.md](PROJECT_STATE.md), [HANDOFF.md](HANDOFF.md),
-[architecture](docs/ARCHITECTURE.md) and [validation evidence](docs/VALIDATION.md)
-before continuing. Phase 03 requires new explicit authorization.
-
-## Source extraction
-
-After inspection select subtitle/audio streams in Episode Detail. Extract embedded
-text, transcribe Auto/English/Chinese audio, or OCR English/Simplified/Traditional
-burned text. Results remain separate, with paginated segments and read-only provenance.
-Default identical requests reuse a run; Run again creates an intentional revision.
-Cancellation is cooperative; source evidence is saved atomically.
-
-The core app works without Python. For actual optional providers follow
-[PROVIDERS.md](docs/PROVIDERS.md), install the locked uv Python3.11 extras, set the
-same private token in ignored .env, then run `pnpm dev:providers` in another terminal.
-CPU is default; no NVIDIA GPU or HF token is needed for basic ASR. Real model weights
-may download on first extraction. Readiness distinguishes dependency/model absence.
-
-`pnpm fixture:sources` generates legal multilingual embedded tracks with tone audio.
-`pnpm test:smoke:sources` explicitly requires real providers plus prepared synthetic
-speech/images and verifies compiled worker persistence. See VALIDATION for actual
-executed evidence and limits; tone fixtures/fake CI providers are not ASR validation.
+Git contains source, migrations, lockfiles, legal fixtures, architecture decisions, and handoff documentation. It
+does not contain `.env` secrets, uploaded media, local PostgreSQL/Redis state, generated outputs, downloaded AI
+models, `.tools`, Python virtual environments, `node_modules`, or build artifacts. A fresh clone is therefore a
+clean environment. Existing private projects/media require a separate intentional data migration; never solve
+that by committing them.
